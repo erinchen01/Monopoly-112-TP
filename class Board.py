@@ -1,6 +1,4 @@
-#commit 
-
-
+import random
 board1 = [[0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
           [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
           [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
@@ -54,7 +52,6 @@ board3 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
           [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 ]
 
-
 board4 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
           [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
           [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -74,6 +71,22 @@ board4 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 
 
 class Board:
-    def __init__(self, xs, ys):
-        self.xs = xs
-        self.ys = ys
+    def __init__(self, selectedBoard):
+        self.map = selectedBoard
+    
+    def getDims(self):
+        rows = len(self.map)
+        cols = len(self.map[0])
+        return rows, cols
+
+    def getRandomPlace(self): 
+        rows, cols = self.getDims()
+        if True:
+            x = random.randint(0, rows)
+            y = random.randint(0, cols)
+            if self.map[x][y]:
+                return x, y
+
+#testCase of getRandomPlace()
+# myBoard = Board(board1)
+# print(myBoard.getRandomPlace())
