@@ -21,9 +21,11 @@ class Grid:
         nameList.remove(self.name)
         self.owner = []
         self.priceToBuy = random.randint(3000, 6000)
+        self.priceToUpgrade = 0.4 * self.priceToBuy
+        
         self.level = 0
-        self.toll = (random.randint(0.3, 0.7) * self.priceToBuy * 
-                     (self.level + 1))
+        self.toll = int(random.randint(2, 5) * 0.1 * self.priceToBuy)
+        self.priceToSell = self.priceToBuy * 0.7
     
     def buyProperty(self, player):
         self.owner = player
@@ -31,8 +33,19 @@ class Grid:
     
     def upgradeProperty(self):
         self.level += 1
+        index = random.randint(2, 6)
+        self.toll = (self.toll + 
+                     int(index * 0.1 * self.priceToBuy))
         
-    
+# g1 = Grid()
+# print(f'before upgrade {g1.toll}, level = {g1.level}')
+# g1.upgradeProperty()
+# print(f'after upgrade {g1.toll}, level = {g1.level}')
+# g1.upgradeProperty()
+# print(f'after upgrade {g1.toll}, level = {g1.level}')
+# g1.upgradeProperty()
+# print(f'after upgrade {g1.toll}, level = {g1.level}')
+
 
 # g1 = Grid()
 # print(g1.name)
@@ -149,7 +162,75 @@ class Player:
         self.loc = myBoard.getRandomPlace()
         self.cards = []
         self.myTurn = False
+        self.myProperties = []
+        self.money = 50000
+        self.ori = self.checkOri()
+
+    def isLegalMove(self, checkingMove):
+        curLocX, curLocY = self.loc
+        dx, dy = checkingMove
+        boardRows, boardCols = myBoard.getDims()
+        if ((0 <= curLocX + dx < boardRows) and 
+            (0 <= curLocY + dy < boardCols)):
+            return True
+        return False
+
+    def checkOri(self):
+        leftMove = (0, -1)
+        rightMove = (0, +1)
+        upMove = (+1, 0)
+        downMove = (-1, 0)
+        for i in (rightMove, leftMove, downMove, upMove):
+            if self.isLegalMove(i):
+                ori = i
+                return ori
+
+    def changeOri(self): #only modify self.ori
+        lastOri = self.ori
+        leftMove = (0, -1)
+        rightMove = (0, +1)
+        upMove = (+1, 0)
+        downMove = (-1, 0)
+        availableOris = [rightMove, leftMove, downMove, upMove]
+        availableOris.remove(lastOri)
+        for checkingMove in availableOris:
+            if self.isLegalMove(checkingMove):
+                self.ori = checkingMove
+
+    def move(self, dice): # only modify self.loc
+        curLocX, curLocY = self.loc
+        # dx, dy = self.ori
+        for _ in range(dice):
+            if not self.isLegalMove(self.ori):
+                self.changeOri()
+            curLocX += self.ori[0]
+            curLocY += self.ori[1]
+            self.loc = curLocX, curLocY
+
+
+                
+        # nextLocX, nextLocY = curLocX + dx * dice, curLocY + dy * dice
+        
+        # pass
+        
     
     def changeMyTurn(self):
         self.myTurn = True
-    
+        
+    def buyProperty(self, grid):
+        self.owner = self
+        self.level = 1
+        self.myProperties.append(grid)
+
+    def upgradeProperty(self, grid):
+        if self.money < grid.priceToUpgrade:
+            return "No enough money to upgrade!"
+        if self.money >= grid.priceToUpgrade:
+            return "Successfully upgraded the property."
+
+    def sellProperty(self, grid):
+        self.money += grid.priceToSell
+        self.property.remove(grid)
+        return f"Successfully sold {grid.name}.\
+                 Now you have {self.money} dollars left."
+ 
