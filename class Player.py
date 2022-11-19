@@ -12,20 +12,28 @@ npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
 cpNameList = ['Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
               'Rifle Mountain Park', 'Fairmount Park', 'City Park',
               'Zilker Park', 'The Gathering Place', 'Papago Park']
-nameList = npNameList + cpNameList
+npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
+                'Pembrokeshire Coast', 'North York Moors', 'Yorkshire Dales',
+                'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
+                'Cairngorms', 'New Forest', 'South Downs']
+factoryNameList = ['airport', 'airport', 'airport', 'airport', 'airport',
+                   'airport', 'airport', 'airport', 'airport', 'airport',
+                   'airport', 'airport', 'airport', 'airport', 'airport',
+                   'airport', 'airport', 'airport', 'airport', 'airport']
+nameList = npNameList + cpNameList + npUKNameList + factoryNameList
 
 # print(len(nameList))
 class Grid:
     def __init__(self):
         self.name = random.choice(nameList)
         nameList.remove(self.name)
-        self.owner = []
+        self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
-        self.priceToUpgrade = 0.4 * self.priceToBuy
+        self.priceToUpgrade = int(0.4 * self.priceToBuy)
         
         self.level = 0
         self.toll = int(random.randint(2, 5) * 0.1 * self.priceToBuy)
-        self.priceToSell = self.priceToBuy * 0.7
+        self.priceToSell = int(self.priceToBuy * 0.7)
     
     def buyProperty(self, player):
         self.owner = player
@@ -33,9 +41,7 @@ class Grid:
     
     def upgradeProperty(self):
         self.level += 1
-        index = random.randint(2, 6)
-        self.toll = (self.toll + 
-                     int(index * 0.1 * self.priceToBuy))
+        self.toll = int(self.toll + 5 * 0.1 * self.priceToBuy)
         
 # g1 = Grid()
 # print(f'before upgrade {g1.toll}, level = {g1.level}')
@@ -136,7 +142,30 @@ board4 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 class Board():
     def __init__(self, selectedBoard):
         self.map = selectedBoard
+        self.detailedInfo = self.makeDetailedInfo()
     
+    def makeDetailedInfo(self):
+        detailedInfo = dict()
+        rows, cols = self.getDims()
+        for row in range(rows):
+            for col in range(cols):
+                coord = (row, col)
+                if self.map[row][col] == 0:
+                    detailedInfo[coord] = None
+                else:
+                    detailedInfo[coord] = dict()
+                    self.map[row][col] = Grid() #####
+                    grid = self.map[row][col]
+                    detailedInfo[coord]['property name'] = grid.name
+                    detailedInfo[coord]['price to buy'] = grid.priceToBuy
+                    if grid.owner != None:
+                        detailedInfo[coord]['owner'] = grid.owner
+                        detailedInfo[coord]['cost to upgrade'] = (
+                                                        grid.priceToUpgrade)
+                    detailedInfo[coord]['owner'] = 'No Owner'
+        return detailedInfo
+
+
     def getDims(self):
         rows = len(self.map)
         cols = len(self.map[0])
@@ -167,13 +196,13 @@ class Player:
         self.ori = self.checkOri()
  
     def isLegalMove(self, checkingMove):
-        # print(f'self.loc = {self.loc}')
         curLocRow, curLocCol = self.loc
         dRow, dCol = checkingMove
         boardRows, boardCols = myBoard.getDims()
+
         if ((0 <= curLocRow + dRow < boardRows) and 
             (0 <= curLocCol + dCol < boardCols) and
-            (myBoard.map[curLocRow + dRow][curLocCol + dCol] == 1)):
+            isinstance(myBoard.map[curLocRow + dRow][curLocCol + dCol], Grid)):
             return True
         return False
 
@@ -183,6 +212,7 @@ class Player:
         upMove = (+1, 0)
         downMove = (-1, 0)
         for i in (rightMove, leftMove, downMove, upMove):
+            print(f'curLoc = {self.loc}')
             if self.isLegalMove(i):
                 ori = i
                 return ori
@@ -210,7 +240,7 @@ class Player:
     def move(self, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
         # dx, dy = self.ori
-        for i in range(dice):
+        for _ in range(dice):
             if not self.isLegalMove(self.ori):
                 self.changeOri()
             curLocRow += self.ori[0]
@@ -237,8 +267,10 @@ class Player:
         return f"Successfully sold {grid.name}.\
                  Now you have {self.money} dollars left."
  
-player1 = Player()
-print(player1.loc)
-print(player1.ori)
-player1.move(5)
-# print(board1[5][1])
+# player1 = Player()
+# print(player1.loc)
+# print(player1.ori)
+# player1.move(5)
+# print(player1.loc)
+# # print(board1[5][1])
+print(myBoard.detailedInfo)
