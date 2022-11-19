@@ -77,7 +77,7 @@ for row in range(len(board1)):
     for col in range(len(board1[0])):
         if board1[row][col]:
             count += 1
-print(count)
+# print(count)
 
 
 board2 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -133,7 +133,7 @@ board4 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 ]
 
 
-class Board(Grid):
+class Board():
     def __init__(self, selectedBoard):
         self.map = selectedBoard
     
@@ -145,17 +145,17 @@ class Board(Grid):
     def getRandomPlace(self): 
         rows, cols = self.getDims()
         if True:
-            x = random.randint(0, rows)
-            y = random.randint(0, cols)
-            if self.map[x][y]:
-                return x, y
+            x = random.randint(0, rows-1)
+            for y in range(cols):
+                if self.map[x][y]:
+                    return x, y
 
 #testCase of getRandomPlace()
 myBoard = Board(board1)
 # print(myBoard.getRandomPlace())
 
 
-dice = random.randint(1, 6)
+# dice = random.randint(1, 6)
 
 class Player:
     def __init__(self):
@@ -165,13 +165,15 @@ class Player:
         self.myProperties = []
         self.money = 50000
         self.ori = self.checkOri()
-
+ 
     def isLegalMove(self, checkingMove):
-        curLocX, curLocY = self.loc
-        dx, dy = checkingMove
+        # print(f'self.loc = {self.loc}')
+        curLocRow, curLocCol = self.loc
+        dRow, dCol = checkingMove
         boardRows, boardCols = myBoard.getDims()
-        if ((0 <= curLocX + dx < boardRows) and 
-            (0 <= curLocY + dy < boardCols)):
+        if ((0 <= curLocRow + dRow < boardRows) and 
+            (0 <= curLocCol + dCol < boardCols) and
+            (myBoard.map[curLocRow + dRow][curLocCol + dCol] == 1)):
             return True
         return False
 
@@ -192,27 +194,28 @@ class Player:
         upMove = (+1, 0)
         downMove = (-1, 0)
         availableOris = [rightMove, leftMove, downMove, upMove]
-        availableOris.remove(lastOri)
+        if lastOri == rightMove:
+            availableOris.remove(leftMove)
+        elif lastOri == leftMove:
+            availableOris.remove(rightMove)
+        elif lastOri == downMove:
+            availableOris.remove(upMove)
+        else:
+            availableOris.remove(downMove)
+
         for checkingMove in availableOris:
             if self.isLegalMove(checkingMove):
                 self.ori = checkingMove
 
     def move(self, dice): # only modify self.loc
-        curLocX, curLocY = self.loc
+        curLocRow, curLocCol = self.loc
         # dx, dy = self.ori
-        for _ in range(dice):
+        for i in range(dice):
             if not self.isLegalMove(self.ori):
                 self.changeOri()
-            curLocX += self.ori[0]
-            curLocY += self.ori[1]
-            self.loc = curLocX, curLocY
-
-
-                
-        # nextLocX, nextLocY = curLocX + dx * dice, curLocY + dy * dice
-        
-        # pass
-        
+            curLocRow += self.ori[0]
+            curLocCol += self.ori[1]
+            self.loc = curLocRow, curLocCol
     
     def changeMyTurn(self):
         self.myTurn = True
@@ -234,3 +237,8 @@ class Player:
         return f"Successfully sold {grid.name}.\
                  Now you have {self.money} dollars left."
  
+player1 = Player()
+print(player1.loc)
+print(player1.ori)
+player1.move(5)
+# print(board1[5][1])
