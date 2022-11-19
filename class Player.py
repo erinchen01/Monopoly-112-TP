@@ -32,16 +32,17 @@ class Grid:
         self.priceToUpgrade = int(0.4 * self.priceToBuy)
         
         self.level = 0
-        self.toll = int(random.randint(2, 5) * 0.1 * self.priceToBuy)
+        self.toll = int(4 * 0.1 * self.priceToBuy)
         self.priceToSell = int(self.priceToBuy * 0.7)
-    
-    def buyProperty(self, player):
-        self.owner = player
-        self.level = 1
+
+        self.chargeTolls = False
     
     def upgradeProperty(self):
         self.level += 1
         self.toll = int(self.toll + 5 * 0.1 * self.priceToBuy)
+
+    def __repr__(self): ####need to improve
+        return f'my owner is {self.owner}'
         
 # g1 = Grid()
 # print(f'before upgrade {g1.toll}, level = {g1.level}')
@@ -162,6 +163,7 @@ class Board():
                         detailedInfo[coord]['owner'] = grid.owner
                         detailedInfo[coord]['cost to upgrade'] = (
                                                         grid.priceToUpgrade)
+                        detailedInfo[coord]['toll'] = (grid.toll)
                     detailedInfo[coord]['owner'] = 'No Owner'
         return detailedInfo
 
@@ -180,21 +182,32 @@ class Board():
                     return x, y
 
 #testCase of getRandomPlace()
-myBoard = Board(board1)
+myBoard = Board(board1)  ## do not comment out
 # print(myBoard.getRandomPlace())
 
+dice = random.randint(1, 6)
 
-# dice = random.randint(1, 6)
+colors = ['red', 'green', 'blue', 'yellow']
+
+
 
 class Player:
-    def __init__(self):
+    def __init__(self, playerName):
         self.loc = myBoard.getRandomPlace()
         self.cards = []
         self.myTurn = False
         self.myProperties = []
         self.money = 50000
         self.ori = self.checkOri()
+        self.color = random.choice(colors)
+        colors.remove(self.color)
+        self.playerName = playerName
+    
+    
+    def __repr__(self):
+        return self.playerName
  
+
     def isLegalMove(self, checkingMove):
         curLocRow, curLocCol = self.loc
         dRow, dCol = checkingMove
@@ -206,6 +219,7 @@ class Player:
             return True
         return False
 
+
     def checkOri(self):
         leftMove = (0, -1)
         rightMove = (0, +1)
@@ -216,6 +230,7 @@ class Player:
             if self.isLegalMove(i):
                 ori = i
                 return ori
+
 
     def changeOri(self): #only modify self.ori
         lastOri = self.ori
@@ -237,9 +252,9 @@ class Player:
             if self.isLegalMove(checkingMove):
                 self.ori = checkingMove
 
+
     def move(self, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
-        # dx, dy = self.ori
         for _ in range(dice):
             if not self.isLegalMove(self.ori):
                 self.changeOri()
@@ -247,30 +262,51 @@ class Player:
             curLocCol += self.ori[1]
             self.loc = curLocRow, curLocCol
     
+
     def changeMyTurn(self):
         self.myTurn = True
         
-    def buyProperty(self, grid):
-        self.owner = self
-        self.level = 1
+
+    def buyProperty(self):
+        curRow, curCol = self.loc
+        grid = myBoard.map[curRow][curCol]
+        # modify the params of the grid
+        grid.owner = self
+        grid.level += 1
+        grid.chargeTolls = True
+
+        # modify the params of players
         self.myProperties.append(grid)
 
-    def upgradeProperty(self, grid):
+
+    def upgradeProperty(self): # modify params of player and print msg
+        curRow, curCol = self.loc
+        grid = myBoard.map[curRow][curCol]
         if self.money < grid.priceToUpgrade:
-            return "No enough money to upgrade!"
-        if self.money >= grid.priceToUpgrade:
-            return "Successfully upgraded the property."
+            print ("No enough money to upgrade!")
+        elif self.money >= grid.priceToUpgrade:
+            self.money -= grid.priceToUpgrade
+            # modify the params of the grid
+            grid.upgradeProperty()
+            print ("Successfully upgraded the property.")
+
 
     def sellProperty(self, grid):
+        # modify the params of players
         self.money += grid.priceToSell
         self.property.remove(grid)
+
+        # modify the params of the grid
+        grid.owner = None
+        grid.toll -= int(4 * 0.1 * self.priceToBuy)
         return f"Successfully sold {grid.name}.\
                  Now you have {self.money} dollars left."
  
-# player1 = Player()
-# print(player1.loc)
+
+player1 = Player("Xinyi")
+print(player1.loc)
 # print(player1.ori)
 # player1.move(5)
 # print(player1.loc)
 # # print(board1[5][1])
-print(myBoard.detailedInfo)
+# print(myBoard.detailedInfo)
