@@ -1,5 +1,6 @@
-#commit 
-import random
+from cmu_112_graphics import *
+
+import random, tkinter
 
 npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
             'Biscayne', 'Carlsbad Caverns', 'Crater Lake', 'Death Valley',
@@ -16,17 +17,14 @@ npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
                 'Pembrokeshire Coast', 'North York Moors', 'Yorkshire Dales',
                 'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
                 'Cairngorms', 'New Forest', 'South Downs']
-factoryNameList = ['airport', 'airport', 'airport', 'airport', 'airport',
-                   'airport', 'airport', 'airport', 'airport', 'airport',
-                   'airport', 'airport', 'airport', 'airport', 'airport',
-                   'airport', 'airport', 'airport', 'airport', 'airport']
-nameList = npNameList + cpNameList + npUKNameList + factoryNameList
+nonFunctionalPlaces = [None]
+nameList = npNameList + cpNameList + npUKNameList + nonFunctionalPlaces
 
-# print(len(nameList))
 class Grid:
     def __init__(self):
         self.name = random.choice(nameList)
-        nameList.remove(self.name)
+        if self.name in (npNameList, cpNameList, npUKNameList):
+            nameList.remove(self.name)
         self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
         self.priceToUpgrade = int(0.4 * self.priceToBuy)
@@ -54,19 +52,6 @@ class Grid:
     def __repr__(self): ####need to improve
         return f'{self.name}'
         
-# g1 = Grid()
-# print(f'before upgrade {g1.toll}, level = {g1.level}')
-# g1.upgradeProperty()
-# print(f'after upgrade {g1.toll}, level = {g1.level}')
-# g1.upgradeProperty()
-# print(f'after upgrade {g1.toll}, level = {g1.level}')
-# g1.upgradeProperty()
-# print(f'after upgrade {g1.toll}, level = {g1.level}')
-
-
-# g1 = Grid()
-# print(g1.name)
-# print(nameList)
 
 
 
@@ -89,65 +74,61 @@ board1 = [[0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
           [0,0,1,0,0,0,0,0,0,1,0,0,0,0,0],
           [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0]
 ]
-count = 0
-for row in range(len(board1)):
-    for col in range(len(board1[0])):
-        if board1[row][col]:
-            count += 1
-# print(count)
 
 
-board2 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0.0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+board2 = [[0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0.0,0,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+          [1,1,1,1,1,1,1,1,1,0,0,0,0,0,1],
+          [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1]
 ]
 
 
-board3 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0.0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+board3 = [[0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+          [0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+          [0,0,0,1,1,1,1,1,1,1,0,0,0,0,1],
+          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+          [0,0,0,1,0,0,0,0,0,1,1,1,1,1,1],
+          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
+          [1,1,1,1,1,1,1,1,1,1,0,0.0,0,0],
+          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+          [1,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+          [0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
+          [0,1,1,1,1,1,1,1,1,1,0,0,0,0,0]
 ]
 
-board4 = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0.0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+board4 = [[0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
+          [1,1,1,1,0,0,0,0,0,0,0,1,0,0,0],
+          [1,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
+          [1,0,0,0,0,0,0,1,1,1,1,1,0,0,0],
+          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+          [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+          [1,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
+          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ]
+
 
 
 class Board():
@@ -167,14 +148,17 @@ class Board():
                     detailedInfo[coord] = dict()
                     self.map[row][col] = Grid() #####
                     grid = self.map[row][col]
-                    detailedInfo[coord]['property name'] = grid.name
-                    detailedInfo[coord]['price to buy'] = grid.priceToBuy
-                    if grid.owner != None:
-                        detailedInfo[coord]['owner'] = grid.owner
-                        detailedInfo[coord]['cost to upgrade'] = (
-                                                        grid.priceToUpgrade)
-                        detailedInfo[coord]['toll'] = (grid.toll)
-                    detailedInfo[coord]['owner'] = 'No Owner'
+                    if grid.name != None:
+                        detailedInfo[coord]['property name'] = grid.name
+                        detailedInfo[coord]['price to buy'] = grid.priceToBuy
+                        if grid.owner != None:
+                            detailedInfo[coord]['owner'] = grid.owner
+                            detailedInfo[coord]['cost to upgrade'] = (
+                                                            grid.priceToUpgrade)
+                            detailedInfo[coord]['toll'] = (grid.toll)
+                        detailedInfo[coord]['owner'] = 'No Owner'
+                    else:
+                        detailedInfo[coord] = None
         return detailedInfo
 
 
@@ -192,7 +176,7 @@ class Board():
                     return x, y
 
 #testCase of getRandomPlace()
-myBoard = Board(board1)  ## do not comment out
+myBoard = Board(board4)  ## do not comment out
 # print(myBoard.getRandomPlace())
 
 dice = random.randint(1, 6)
@@ -311,53 +295,42 @@ class Player:
         return f'''Successfully sold {grid.name}.\
 Now you have {self.money} dollars left.\
         '''
- 
 
 
 
+# Please ignore the below code
+# twoDx = 5
+# twoDy = 5
 
+# def twoDToIso(app, twoDx, twoDy):
+#     app.isoWidth = twoDx * app.gridWidth
+#     app.isoHeight = 
+#     canvas.create_polygon(x0, y0, x1, y1, x2, y2, x3, y3)
+#     twoDx 
 
+# def appStarted(app):
+#     app.gridLength = 5
+#     app.gridWidth = 5
+#     app.message = 'Press any key'
 
+# def keyPressed(app, event):
+#     app.message = f"event.key == '{event.key}'"
 
+# def redrawAll(app, canvas):
+#     canvas.create_text(app.width/2, 40, text=app.message,
+#                        font='Arial 30 bold', fill='black')
+    
+#     keyNamesText = '''Here are the legal event.key names:
+#                       * Keyboard key labels (letters, digits, punctuation)
+#                       * Arrow directions ('Up', 'Down', 'Left', 'Right')
+#                       * Whitespace ('Space', 'Enter', 'Tab', 'BackSpace')
+#                       * Other commands ('Delete', 'Escape')'''
 
+#     y = 80
+#     for line in keyNamesText.splitlines():
+#         canvas.create_text(app.width/2, y, text=line.strip(),
+#                            font='Arial 20', fill='black')
+#         y += 30
 
+# runApp(width=600, height=400)
 
-
-
-
-
-
-
-player1 = Player("Xinyi")
-# player2 = Player("Lynne")
-print(player1.loc)
-print(player1.myProperties)
-print(f'my money = {player1.money}')
-
-player1.buyProperty()
-print(f'my money = {player1.money}')
-
-player1.move(5)
-player1.buyProperty()
-print(f'my money = {player1.money}')
-print(player1.myProperties)
-row, col = player1.loc
-print(f'the toll is {myBoard.map[row][col].toll}')
-
-player1.upgradeProperty()
-print(f'my money = {player1.money}')
-row, col = player1.loc
-print(f'the toll is {myBoard.map[row][col].toll}')
-
-print(player1.sellProperty())
-print(f'my money = {player1.money}')
-row,col = player1.loc
-print(f'the toll is {myBoard.map[row][col].toll}')
-print(player1.myProperties)
-
-
-# print(player1.ori)
-# player1.move(5)
-# print(player1.loc)
-# # print(board1[5][1])
-# print(myBoard.detailedInfo)
