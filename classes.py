@@ -2,6 +2,10 @@ from cmu_112_graphics import *
 
 import random, tkinter
 
+##########################################
+# Grid class
+##########################################
+
 npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
             'Biscayne', 'Carlsbad Caverns', 'Crater Lake', 'Death Valley',
             'Dry Tortugas', 'Gates of the Arctic', 'Glacier Bay',
@@ -54,10 +58,9 @@ class Grid:
         
 
 
-
-
-
-#board
+##########################################
+# Board class
+##########################################
 board1 = [[0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
           [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
           [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
@@ -179,6 +182,10 @@ class Board():
 myBoard = Board(board4)  ## do not comment out
 # print(myBoard.getRandomPlace())
 
+##########################################
+# Player class
+##########################################
+
 dice = random.randint(1, 6)
 
 colors = ['red', 'green', 'blue', 'yellow']
@@ -296,8 +303,110 @@ Now you have {self.money} dollars left.\
         '''
 
 
+##########################################
+# Splash Screen Mode
+##########################################
 
-# Please ignore the below code
+def splashScreenMode_redrawAll(app, canvas):
+    font = 'Times 28 bold italic'
+    canvas.create_text(app.width/2, 170, text='Monopoly',
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, 220, text='Press y to start the game!',
+                       font=font, fill='black')
+
+
+def splashScreenMode_keyPressed(app, event):
+    if event.key == 'y':
+        app.mode = 'gameMode'
+
+
+##########################################
+# Game Mode
+##########################################
+
+def gameMode_redrawAll(app, canvas):
+    font = 'Times 28 bold italic'
+    canvas.create_text(app.width/2, 20, text='Game',
+                       font=font, fill='black')
+    x0Ins = app.width * 0.85
+    y0Ins = app.height * 0.2
+    x1Ins = app.width * 0.95
+    y1Ins = app.height * 0.3
+    
+    canvas.create_oval(x0Ins, y0Ins, x1Ins, y1Ins, fill = 'white') # Instruction
+    canvas.create_text(app.width * 0.8, app.height * 0.28, 
+                       text = "Instruction", anchor = 'sw',
+                       fill = 'black', font = font)
+
+    x0Card = app.width * 0.85
+    y0Card = app.height * 0.35
+    x1Card = app.width * 0.95
+    y1Card = app.height * 0.45
+    canvas.create_oval(x0Card, y0Card, x1Card, y1Card, fill = 'white') # Special cards
+    canvas.create_text(app.width * 0.845, app.height * 0.43, text = "Cards",
+                       anchor = 'sw',
+                       fill = 'black', font = font)
+
+def gameMode_mousePressed(app, event):
+    x0Ins = app.width * 0.85
+    y0Ins = app.height * 0.2
+    x1Ins = app.width * 0.95
+    y1Ins = app.height * 0.3
+    x0Card = app.width * 0.85
+    y0Card = app.height * 0.35
+    x1Card = app.width * 0.95
+    y1Card = app.height * 0.45
+    # instruction page
+    if x0Ins < event.x < x1Ins and y0Ins < event.y < y1Ins:
+        app.mode = 'instructionMode'
+    elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
+        app.mode = 'specialCardsMode'
+
+##########################################
+# Instruction Mode
+##########################################
+
+def instructionMode_redrawAll(app, canvas):
+    font = 'Times 28 bold italic'
+    canvas.create_text(app.width/2, 200, text='This is the instruction!', 
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, 300, text='Press r to return to the game!',
+                       font=font, fill='black')
+
+def instructionMode_keyPressed(app, event):
+    if event.key == 'r':
+        app.mode = 'gameMode'
+
+##########################################
+# Special cards Mode
+##########################################
+
+def specialCardsMode_redrawAll(app, canvas):
+    font = 'Times 28 bold italic'
+    canvas.create_text(app.width/2, 200, 
+                       text='Here are all the special cards you have!', 
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, 350, text='Press r to return to the game!',
+                       font=font, fill='black')
+
+def specialCardsMode_keyPressed(app, event):
+    if event.key == 'r':
+        app.mode = 'gameMode'
+
+
+##########################################
+# Main App
+##########################################
+
+def appStarted(app):
+    app.mode = 'splashScreenMode'
+    app.gridLength = 5
+    app.gridWidth = 5
+
+runApp(width=600, height=600)
+
+
+# Please ignore the code below
 # twoDx = 5
 # twoDy = 5
 
@@ -307,10 +416,7 @@ Now you have {self.money} dollars left.\
 #     canvas.create_polygon(x0, y0, x1, y1, x2, y2, x3, y3)
 #     twoDx 
 
-# def appStarted(app):
-#     app.gridLength = 5
-#     app.gridWidth = 5
-#     app.message = 'Press any key'
+
 
 # def keyPressed(app, event):
 #     app.message = f"event.key == '{event.key}'"
@@ -330,6 +436,3 @@ Now you have {self.money} dollars left.\
 #         canvas.create_text(app.width/2, y, text=line.strip(),
 #                            font='Arial 20', fill='black')
 #         y += 30
-
-# runApp(width=600, height=400)
-
