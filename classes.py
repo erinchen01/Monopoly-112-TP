@@ -302,7 +302,7 @@ class Player:
 Now you have {self.money} dollars left.\
         '''
 
-
+# The concept of mode is from 112 course website
 ##########################################
 # Splash Screen Mode
 ##########################################
