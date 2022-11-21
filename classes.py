@@ -346,6 +346,7 @@ def gameMode_redrawAll(app, canvas):
     canvas.create_text(app.width * 0.845, app.height * 0.43, text = "Cards",
                        anchor = 'sw',
                        fill = 'black', font = font)
+    
 
 def gameMode_mousePressed(app, event):
     x0Ins = app.width * 0.85
@@ -361,7 +362,14 @@ def gameMode_mousePressed(app, event):
         app.mode = 'instructionMode'
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
+    
 
+def draw_square(event):
+    x0 = random.randint(30, 370)
+    y0 = random.randint(30, 170)
+    size = random.randint(10, 30)
+
+    event.widget.create_rectangle(x0, y0, x0+size, y0+size, fill="red")
 ##########################################
 # Instruction Mode
 ##########################################
@@ -402,6 +410,7 @@ def appStarted(app):
     app.mode = 'splashScreenMode'
     app.gridLength = 5
     app.gridWidth = 5
+    
 
 runApp(width=600, height=600)
 
