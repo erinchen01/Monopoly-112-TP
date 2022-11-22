@@ -21,8 +21,10 @@ npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
                 'Pembrokeshire Coast', 'North York Moors', 'Yorkshire Dales',
                 'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
                 'Cairngorms', 'New Forest', 'South Downs']
+functionPlaceList = ['airport', 'prison']
 nonFunctionalPlaces = [None]
-nameList = npNameList + cpNameList + npUKNameList + nonFunctionalPlaces
+nameList = (npNameList + cpNameList + npUKNameList +
+            functionPlaceList + nonFunctionalPlaces)
 
 class Grid:
     def __init__(self):
@@ -319,6 +321,12 @@ def splashScreenMode_keyPressed(app, event):
     if event.key == 'y':
         app.mode = 'gameMode'
 
+# ##########################################
+# # Map Choose Mode
+# ##########################################
+
+# def mapChoose_redrawAll(app, canvas):
+#     canvas.create_
 
 ##########################################
 # Game Mode
@@ -346,6 +354,7 @@ def gameMode_redrawAll(app, canvas):
     canvas.create_text(app.width * 0.845, app.height * 0.43, text = "Cards",
                        anchor = 'sw',
                        fill = 'black', font = font)
+    gameMode_drawBoard(app, canvas)
     
 
 def gameMode_mousePressed(app, event):
@@ -370,6 +379,37 @@ def draw_square(event):
     size = random.randint(10, 30)
 
     event.widget.create_rectangle(x0, y0, x0+size, y0+size, fill="red")
+
+###########
+#draw map
+###########
+def twoDToIso(twoDx, twoDy):
+    isoX = twoDx - twoDy
+    isoY = (twoDx + twoDy) / 2
+    return(isoX, isoY)
+
+def gameMode_drawBoard(app, canvas):
+    rows, cols = myBoard.getDims()
+    for row in range(rows):
+        for col in range(cols):
+            cx = app.gridWidth * col + app.width * 0.4
+            cy = app.gridHeight * row
+            placeGrid(app, canvas, cx, cy)
+
+
+# def gameMode_drawBoard(app, canvas):
+#     placeGrid(app, canvas, point0, point1, point2, point3)
+
+def placeGrid(app, canvas, cx, cy):
+    twoDcx, twoDcy = twoDToIso(cx, cy)
+    # twoDx1, twoDy1 = x + app.gridWidth, y + app.gridHeight
+    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
+    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
+    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
+    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
+    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
+    canvas.create_polygon(coord, fill='pink', outline='black')
+
 ##########################################
 # Instruction Mode
 ##########################################
@@ -408,22 +448,16 @@ def specialCardsMode_keyPressed(app, event):
 
 def appStarted(app):
     app.mode = 'splashScreenMode'
-    app.gridLength = 5
-    app.gridWidth = 5
+    app.gridHeight = 23
+    app.gridWidth = 23
     
 
-runApp(width=600, height=600)
+runApp(width=900, height=600)
 
 
 # Please ignore the code below
-# twoDx = 5
-# twoDy = 5
 
-# def twoDToIso(app, twoDx, twoDy):
-#     app.isoWidth = twoDx * app.gridWidth
-#     app.isoHeight = 
-#     canvas.create_polygon(x0, y0, x1, y1, x2, y2, x3, y3)
-#     twoDx 
+
 
 
 
