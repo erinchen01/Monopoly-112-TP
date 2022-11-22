@@ -21,7 +21,7 @@ npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
                 'Pembrokeshire Coast', 'North York Moors', 'Yorkshire Dales',
                 'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
                 'Cairngorms', 'New Forest', 'South Downs']
-functionPlaceList = ['airport', 'prison']
+functionPlaceList = ['prison']
 nonFunctionalPlaces = [None]
 nameList = (npNameList + cpNameList + npUKNameList +
             functionPlaceList + nonFunctionalPlaces)
@@ -29,7 +29,10 @@ nameList = (npNameList + cpNameList + npUKNameList +
 class Grid:
     def __init__(self):
         self.name = random.choice(nameList)
-        if self.name in (npNameList, cpNameList, npUKNameList):
+        if self.name is 'prison':
+            nameList.remove(functionPlaceList)
+        if self.name in (npNameList, cpNameList, 
+                         npUKNameList, functionPlaceList):
             nameList.remove(self.name)
         self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
@@ -440,12 +443,21 @@ def gameMode_drawBoard(app, canvas):
             if app.myBoard.map[row][col] != 0:
                 cx = app.gridWidth * col + app.width * 0.4
                 cy = app.gridHeight * row
-                placeGrid(app, canvas, cx, cy)
+                
+                if app.myBoard.map[row][col].name == 'prison':
+                    placePrisonGrid(app, canvas, cx, cy)
+                elif app.myBoard.map[row][col].name == None:
+                    placeNoneGrid(app, canvas, cx, cy)
+                else:
+                    placeGrid(app, canvas, cx, cy)
+
+                
+            
 
 
 def placeGrid(app, canvas, cx, cy):
     twoDcx, twoDcy = twoDToIso(cx, cy)
-    # twoDx1, twoDy1 = x + app.gridWidth, y + app.gridHeight
+
     isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
     isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
     isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
@@ -453,14 +465,27 @@ def placeGrid(app, canvas, cx, cy):
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
     canvas.create_polygon(coord, fill='pink', outline='black')
 
-def placeWhiteGrid(app, canvas, cx, cy):
+
+def placePrisonGrid(app, canvas, cx, cy):
     twoDcx, twoDcy = twoDToIso(cx, cy)
+
     isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
     isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
     isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
     isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='pink', outline='black')
+    canvas.create_polygon(coord, fill='yellow', outline='black')
+
+def placeNoneGrid(app, canvas, cx, cy):
+    twoDcx, twoDcy = twoDToIso(cx, cy)
+
+    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
+    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
+    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
+    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
+    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
+    canvas.create_polygon(coord, fill='purple', outline='black')
+
 ##########################################
 # Instruction Mode
 ##########################################
