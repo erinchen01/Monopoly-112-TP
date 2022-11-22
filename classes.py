@@ -90,7 +90,7 @@ board2 = [[0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
           [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
           [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
           [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0.0,0,1],
+          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
           [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
           [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
           [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
@@ -98,7 +98,6 @@ board2 = [[0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
           [1,1,1,1,1,1,1,1,1,0,0,0,0,0,1],
           [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1]
 ]
-
 
 board3 = [[0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
           [0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
@@ -108,7 +107,7 @@ board3 = [[0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
           [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
           [0,0,0,1,0,0,0,0,0,1,1,1,1,1,1],
           [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,0,0.0,0,0],
+          [1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
           [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
           [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
           [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
@@ -179,10 +178,11 @@ class Board():
             for y in range(cols):
                 if self.map[x][y]:
                     return x, y
-
 #testCase of getRandomPlace()
-myBoard = Board(board4)  ## do not comment out
+# myBoard = Board(board4)  ## do not comment out
 # print(myBoard.getRandomPlace())
+# print(myBoard.map[0][0])
+
 
 ##########################################
 # Player class
@@ -194,8 +194,8 @@ colors = ['red', 'green', 'blue', 'yellow']
 
 
 class Player:
-    def __init__(self, playerName):
-        self.loc = myBoard.getRandomPlace()
+    def __init__(app, self, playerName):
+        self.loc = app.myBoard.getRandomPlace()
         self.cards = []
         self.myTurn = False
         self.myProperties = []
@@ -210,14 +210,14 @@ class Player:
         return self.playerName
  
 
-    def isLegalMove(self, checkingMove):
+    def isLegalMove(self, app, checkingMove):
         curLocRow, curLocCol = self.loc
         dRow, dCol = checkingMove
-        boardRows, boardCols = myBoard.getDims()
+        boardRows, boardCols = app.myBoard.getDims()
 
         if ((0 <= curLocRow + dRow < boardRows) and 
             (0 <= curLocCol + dCol < boardCols) and
-            isinstance(myBoard.map[curLocRow + dRow][curLocCol + dCol], Grid)):
+            isinstance(app.myBoard.map[curLocRow + dRow][curLocCol + dCol], Grid)):
             return True
         return False
 
@@ -250,7 +250,7 @@ class Player:
             availableOris.remove(downMove)
 
         for checkingMove in availableOris:
-            if self.isLegalMove(checkingMove):
+            if self.isLegalMove(app, checkingMove):
                 self.ori = checkingMove
 
 
@@ -268,9 +268,9 @@ class Player:
         self.myTurn = True
         
 
-    def buyProperty(self):
+    def buyProperty(self, app):
         curRow, curCol = self.loc
-        grid = myBoard.map[curRow][curCol]
+        grid = app.myBoard.map[curRow][curCol]
         # modify the params of the grid
         grid.buying(self)
 
@@ -279,9 +279,9 @@ class Player:
         self.money -= grid.priceToBuy
 
 
-    def upgradeProperty(self): # modify params of player and return msg
+    def upgradeProperty(self, app): # modify params of player and return msg
         curRow, curCol = self.loc
-        grid = myBoard.map[curRow][curCol]
+        grid = app.myBoard.map[curRow][curCol]
         if self.money < grid.priceToUpgrade:
             return "No enough money to upgrade!"
         elif self.money >= grid.priceToUpgrade:
@@ -291,9 +291,9 @@ class Player:
             return "Successfully upgraded the property."
 
 
-    def sellProperty(self):
+    def sellProperty(self, app):
         curRow, curCol = self.loc
-        grid = myBoard.map[curRow][curCol]
+        grid = app.myBoard.map[curRow][curCol]
         # modify the params of players
         self.money += grid.priceToSell
         self.myProperties.remove(grid)
@@ -304,29 +304,69 @@ class Player:
 Now you have {self.money} dollars left.\
         '''
 
-# The concept of mode is from 112 course website
+# The concept of mode is learnt from 112 course website
 ##########################################
 # Splash Screen Mode
 ##########################################
 
 def splashScreenMode_redrawAll(app, canvas):
     font = 'Times 28 bold italic'
-    canvas.create_text(app.width/2, 170, text='Monopoly',
+    canvas.create_text(app.width/2, app.height/3, text='Monopoly',
                        font=font, fill='black')
-    canvas.create_text(app.width/2, 220, text='Press y to start the game!',
+    canvas.create_text(app.width/2, app.height/2.5, 
+                       text='Press y to start the game!',
                        font=font, fill='black')
 
 
 def splashScreenMode_keyPressed(app, event):
     if event.key == 'y':
-        app.mode = 'gameMode'
+        app.mode = 'mapChooseMode'
 
 # ##########################################
 # # Map Choose Mode
 # ##########################################
 
-# def mapChoose_redrawAll(app, canvas):
-#     canvas.create_
+def mapChooseMode_redrawAll(app, canvas):
+    font = 'Times 28 bold italic'
+    canvas.create_text(app.width/2, app.height/8, 
+                       text="Please press left and right key to choose the map",
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, app.height/5.7, 
+                       text="Press 'y' to start the game!",
+                       font=font, fill='black')
+    mapChooseMode_drawBoard(app, canvas)
+
+
+def mapChooseMode_keyPressed(app, event):
+
+    if event.key == 'Left':
+        app.index = max(1, app.index-1)
+        
+    elif event.key == 'Right':
+        app.index = min(app.index+1, 4)
+    
+    if app.index == 1:
+        app.myBoard = Board(board1)
+    elif app.index == 2:
+        app.myBoard = Board(board2)
+    elif app.index == 3:
+        app.myBoard = Board(board3)
+    elif app.index == 4:
+        app.myBoard = Board(board4)
+
+    if event.key == 'y':
+        app.mode = 'gameMode'
+    
+
+
+def mapChooseMode_drawBoard(app, canvas):
+    rows, cols = app.myBoard.getDims()
+    for row in range(rows):
+        for col in range(cols):
+            if app.myBoard.map[row][col] != 0:
+                cx = app.gridWidth * col + app.width * 0.4
+                cy = app.gridHeight * row
+                placeGrid(app, canvas, cx, cy)
 
 ##########################################
 # Game Mode
@@ -380,6 +420,11 @@ def draw_square(event):
 
     event.widget.create_rectangle(x0, y0, x0+size, y0+size, fill="red")
 
+def gameMode_keyPressed(app, event):
+    if event.key == 'r':
+        app.mode = 'mapChooseMode'
+
+
 ###########
 #draw map
 ###########
@@ -389,16 +434,14 @@ def twoDToIso(twoDx, twoDy):
     return(isoX, isoY)
 
 def gameMode_drawBoard(app, canvas):
-    rows, cols = myBoard.getDims()
+    rows, cols = app.myBoard.getDims()
     for row in range(rows):
         for col in range(cols):
-            cx = app.gridWidth * col + app.width * 0.4
-            cy = app.gridHeight * row
-            placeGrid(app, canvas, cx, cy)
+            if app.myBoard.map[row][col] != 0:
+                cx = app.gridWidth * col + app.width * 0.4
+                cy = app.gridHeight * row
+                placeGrid(app, canvas, cx, cy)
 
-
-# def gameMode_drawBoard(app, canvas):
-#     placeGrid(app, canvas, point0, point1, point2, point3)
 
 def placeGrid(app, canvas, cx, cy):
     twoDcx, twoDcy = twoDToIso(cx, cy)
@@ -410,6 +453,14 @@ def placeGrid(app, canvas, cx, cy):
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
     canvas.create_polygon(coord, fill='pink', outline='black')
 
+def placeWhiteGrid(app, canvas, cx, cy):
+    twoDcx, twoDcy = twoDToIso(cx, cy)
+    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
+    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
+    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
+    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
+    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
+    canvas.create_polygon(coord, fill='pink', outline='black')
 ##########################################
 # Instruction Mode
 ##########################################
@@ -450,7 +501,8 @@ def appStarted(app):
     app.mode = 'splashScreenMode'
     app.gridHeight = 23
     app.gridWidth = 23
-    
+    app.myBoard = Board(board1)
+    app.index = 1
 
 runApp(width=900, height=600)
 
