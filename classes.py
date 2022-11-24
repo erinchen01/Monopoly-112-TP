@@ -27,13 +27,13 @@ nameList = (npNameList + cpNameList + npUKNameList +
             functionPlaceList + nonFunctionalPlaces)
 
 class Grid:
-    def __init__(self):
-        self.name = random.choice(nameList)
+    def __init__(self, app):
+        self.name = random.choice(app.nameList)
         if self.name is 'prison':
-            nameList.remove(functionPlaceList)
-        if self.name in (npNameList, cpNameList, 
-                         npUKNameList, functionPlaceList):
-            nameList.remove(self.name)
+            app.nameList.remove(app.functionPlaceList)
+        if self.name in (app.npNameList, app.cpNameList, 
+                         app.npUKNameList, app.functionPlaceList):
+            app.nameList.remove(self.name)
         self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
         self.priceToUpgrade = int(0.4 * self.priceToBuy)
@@ -528,6 +528,21 @@ def appStarted(app):
     app.gridWidth = 23
     app.myBoard = Board(board1)
     app.index = 1
+    app.npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
+            'Biscayne', 'Carlsbad Caverns', 'Crater Lake', 'Death Valley',
+            'Dry Tortugas', 'Gates of the Arctic', 'Glacier Bay',
+            'Great Smoky Mountains', 'Isle Royale', 'Joshua Tree',
+            'Kings Canyon', 'Lake Clark', 'New River Gorge', 'North Cascades',
+            'Petrified Forest', 'Redwood', 'Rocky Mountain', 'Saguaro',
+            'Sequoia', 'Theodore Roosevelt', 'Voyageurs', 'Virgin Islands',
+            'White Sands', 'Yellowstone', 'Zion']
+    app.cpNameList = ['Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
+              'Rifle Mountain Park', 'Fairmount Park', 'City Park',
+              'Zilker Park', 'The Gathering Place', 'Papago Park']
+    app.functionPlaceList = ['prison']
+    app.nonFunctionalPlaces = [None]
+    app.nameList = (app.npNameList +
+            app.functionPlaceList + app.nonFunctionalPlaces)
 
 runApp(width=900, height=600)
 
