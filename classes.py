@@ -6,30 +6,8 @@ import random, tkinter
 # Grid class
 ##########################################
 
-npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
-            'Biscayne', 'Carlsbad Caverns', 'Crater Lake', 'Death Valley',
-            'Dry Tortugas', 'Gates of the Arctic', 'Glacier Bay',
-            'Great Smoky Mountains', 'Isle Royale', 'Joshua Tree',
-            'Kings Canyon', 'Lake Clark', 'New River Gorge', 'North Cascades',
-            'Petrified Forest', 'Redwood', 'Rocky Mountain', 'Saguaro',
-            'Sequoia', 'Theodore Roosevelt', 'Voyageurs', 'Virgin Islands',
-            'White Sands', 'Yellowstone', 'Zion']
-cpNameList = ['Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
-              'Rifle Mountain Park', 'Fairmount Park', 'City Park',
-              'Zilker Park', 'The Gathering Place', 'Papago Park']
-npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
-                'Pembrokeshire Coast', 'North York Moors', 'Yorkshire Dales',
-                'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
-                'Cairngorms', 'New Forest', 'South Downs']
-functionPlaceList = ['prison']
-nonFunctionalPlaces = [None]
-
 class Grid:
     def __init__(self, gridName):
-        # self.name = random.choice(nameList)
-        # if self.name is not None:
-        #     nameList.remove(self.name)
-        # print(self.name)
         self.name = gridName
         self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
@@ -155,10 +133,6 @@ class Board():
         for row in range(rows):
             for col in range(cols):
                 coord = (row, col)
-                # print(self.map[row][col])
-                # if self.map[row][col] == 0:
-                    # detailedInfo[coord] = None
-                # else:
                 if self.map[row][col] != 0:
                     print(index)
                     if index == 7:
@@ -199,10 +173,6 @@ class Board():
             for y in range(cols):
                 if self.map[x][y]:
                     return x, y
-#testCase of getRandomPlace()
-# myBoard = Board(board4)  ## do not comment out
-# print(myBoard.getRandomPlace())
-# print(myBoard.map[0][0])
 
 
 ##########################################
@@ -274,6 +244,9 @@ class Player:
             if self.isLegalMove(app, checkingMove):
                 self.ori = checkingMove
 
+    def playDice(self):
+        dice = random.number(1,6)
+        return dice
 
     def move(self, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
@@ -341,7 +314,36 @@ def splashScreenMode_redrawAll(app, canvas):
 
 def splashScreenMode_keyPressed(app, event):
     if event.key == 'y':
+        app.mode = 'playerSettingMode'
+
+# ##########################################
+# # Player setting Mode
+# ##########################################
+
+def playerSettingMode_redrawAll(app, canvas):
+    font = font = 'Times 28 bold italic'
+    
+    canvas.create_text(app.width/2, app.height/8, 
+                       text=app.message,
+                       font=font, fill='black')
+    canvas.create_text(app.width/7, app.height/8, 
+                       text=f"Player number: {app.playerNum}",
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, app.height/2, 
+                       text=f"Press 'y' to start the game!",
+                       font=font, fill='black')
+
+def playerSettingMode_mousePressed(app, event):
+    name = app.getUserInput('Please enter your name:)')
+    if name != None:
+        app.playerNum += 1
+        app.message = 'Successfully add a player'
+        
+    
+def playerSettingMode_keyPressed(app, event):
+    if event.key == 'y':
         app.mode = 'mapChooseMode'
+
 
 # ##########################################
 # # Map Choose Mode
@@ -416,8 +418,8 @@ def gameMode_redrawAll(app, canvas):
                        anchor = 'sw',
                        fill = 'black', font = font)
     gameMode_drawBoard(app, canvas)
-    print('---------------------------------------')
-    print(app.myBoard.detailedInfo)
+    gameMode_drawPlayer(app, canvas)
+
     
 
 def gameMode_mousePressed(app, event):
@@ -434,7 +436,9 @@ def gameMode_mousePressed(app, event):
         app.mode = 'instructionMode'
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
-    
+
+def gameMode_drawPlayer(app, canvas):
+    pass
 
 def draw_square(event):
     x0 = random.randint(30, 370)
@@ -548,6 +552,8 @@ def appStarted(app):
     app.gridWidth = 23
     app.myBoard = Board(board1)
     app.index = 1
+    app.playerNum = 0
+    app.message = 'Click the mouse to add a player!'
 
 
 runApp(width=900, height=600)
