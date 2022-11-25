@@ -23,17 +23,14 @@ npUKNameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
                 'Cairngorms', 'New Forest', 'South Downs']
 functionPlaceList = ['prison']
 nonFunctionalPlaces = [None]
-nameList = (npNameList + cpNameList + npUKNameList +
-            functionPlaceList + nonFunctionalPlaces)
 
 class Grid:
-    def __init__(self, app):
-        self.name = random.choice(app.nameList)
-        if self.name is 'prison':
-            app.nameList.remove(app.functionPlaceList)
-        if self.name in (app.npNameList, app.cpNameList, 
-                         app.npUKNameList, app.functionPlaceList):
-            app.nameList.remove(self.name)
+    def __init__(self, gridName):
+        # self.name = random.choice(nameList)
+        # if self.name is not None:
+        #     nameList.remove(self.name)
+        # print(self.name)
+        self.name = gridName
         self.owner = None
         self.priceToBuy = random.randint(3000, 6000)
         self.priceToUpgrade = int(0.4 * self.priceToBuy)
@@ -144,19 +141,39 @@ class Board():
         self.detailedInfo = self.makeDetailedInfo()
     
     def makeDetailedInfo(self):
+
+        nameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
+                    'Pembrokeshire Coast', 'North York Moors','Yorkshire Dales',
+                    'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
+                    'Cairngorms', 'New Forest', 'South Downs',
+                    'Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
+                    'Rifle Mountain Park', 'Fairmount Park', 'City Park',
+                    'Zilker Park', 'The Gathering Place', 'Papago Park']
+        index = 0
         detailedInfo = dict()
         rows, cols = self.getDims()
         for row in range(rows):
             for col in range(cols):
                 coord = (row, col)
-                if self.map[row][col] == 0:
-                    detailedInfo[coord] = None
-                else:
+                # print(self.map[row][col])
+                # if self.map[row][col] == 0:
+                    # detailedInfo[coord] = None
+                # else:
+                if self.map[row][col] != 0:
+                    print(index)
+                    if index == 7:
+                        gridName = 'prison'
+                    elif 0 < index % 7 % 4 <= 3:
+                        gridName = None
+                    else:
+                        gridName = random.choice(nameList)
+                    if gridName is not None and gridName is not 'prison':
+                            nameList.remove(gridName)
                     detailedInfo[coord] = dict()
-                    self.map[row][col] = Grid() #####
+                    self.map[row][col] = Grid(gridName) #####
                     grid = self.map[row][col]
                     if grid.name != None:
-                        detailedInfo[coord]['property name'] = grid.name
+                        detailedInfo[coord]['property name'] = gridName
                         detailedInfo[coord]['price to buy'] = grid.priceToBuy
                         if grid.owner != None:
                             detailedInfo[coord]['owner'] = grid.owner
@@ -166,6 +183,7 @@ class Board():
                         detailedInfo[coord]['owner'] = 'No Owner'
                     else:
                         detailedInfo[coord] = None
+                    index += 1
         return detailedInfo
 
 
@@ -398,6 +416,8 @@ def gameMode_redrawAll(app, canvas):
                        anchor = 'sw',
                        fill = 'black', font = font)
     gameMode_drawBoard(app, canvas)
+    print('---------------------------------------')
+    print(app.myBoard.detailedInfo)
     
 
 def gameMode_mousePressed(app, event):
@@ -528,21 +548,7 @@ def appStarted(app):
     app.gridWidth = 23
     app.myBoard = Board(board1)
     app.index = 1
-    app.npNameList = ['Acadia', 'American Samoa', 'Arches', 'Badlands', 'Big Bend',
-            'Biscayne', 'Carlsbad Caverns', 'Crater Lake', 'Death Valley',
-            'Dry Tortugas', 'Gates of the Arctic', 'Glacier Bay',
-            'Great Smoky Mountains', 'Isle Royale', 'Joshua Tree',
-            'Kings Canyon', 'Lake Clark', 'New River Gorge', 'North Cascades',
-            'Petrified Forest', 'Redwood', 'Rocky Mountain', 'Saguaro',
-            'Sequoia', 'Theodore Roosevelt', 'Voyageurs', 'Virgin Islands',
-            'White Sands', 'Yellowstone', 'Zion']
-    app.cpNameList = ['Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
-              'Rifle Mountain Park', 'Fairmount Park', 'City Park',
-              'Zilker Park', 'The Gathering Place', 'Papago Park']
-    app.functionPlaceList = ['prison']
-    app.nonFunctionalPlaces = [None]
-    app.nameList = (app.npNameList +
-            app.functionPlaceList + app.nonFunctionalPlaces)
+
 
 runApp(width=900, height=600)
 
@@ -571,3 +577,4 @@ runApp(width=900, height=600)
 #         canvas.create_text(app.width/2, y, text=line.strip(),
 #                            font='Arial 20', fill='black')
 #         y += 30
+
