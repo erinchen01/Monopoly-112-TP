@@ -7,10 +7,10 @@ import random, tkinter
 ##########################################
 
 class Grid:
-    def __init__(self, gridName):
+    def __init__(self, gridName, gridPriceToBuy):
         self.name = gridName
         self.owner = None
-        self.priceToBuy = random.randint(3000, 6000)
+        self.priceToBuy = gridPriceToBuy
         self.priceToUpgrade = int(0.4 * self.priceToBuy)
         
         self.level = 0
@@ -134,19 +134,20 @@ class Board():
             for col in range(cols):
                 coord = (row, col)
                 if self.map[row][col] != 0:
-                    print(index)
                     if index == 7:
                         gridName = 'prison'
                     elif 0 < index % 7 % 4 <= 3:
                         gridName = None
+                        gridPriceToBuy = 0
                     else:
                         gridName = random.choice(nameList)
-                    if gridName is not None and gridName is not 'prison':
+                        gridPriceToBuy = random.randint(3000, 6000)
+                    if (gridName is not None) and (gridName is not 'prison'):
                             nameList.remove(gridName)
                     detailedInfo[coord] = dict()
-                    self.map[row][col] = Grid(gridName) #####
+                    self.map[row][col] = Grid(gridName, gridPriceToBuy) #####
                     grid = self.map[row][col]
-                    if grid.name != None:
+                    if gridName != None:
                         detailedInfo[coord]['property name'] = gridName
                         detailedInfo[coord]['price to buy'] = grid.priceToBuy
                         if grid.owner != None:
@@ -169,36 +170,35 @@ class Board():
     def getRandomPlace(self): 
         rows, cols = self.getDims()
         if True:
-            x = random.randint(0, rows-1)
-            for y in range(cols):
-                if self.map[x][y]:
-                    return x, y
+            row = random.randint(0, rows-1)
+            for col in range(cols):
+                if self.map[row][col]:
+                    return row, col
+
 
 
 ##########################################
 # Player class
 ##########################################
 
-dice = random.randint(1, 6)
 
-colors = ['red', 'green', 'blue', 'yellow']
 
 
 class Player:
-    def __init__(app, self, playerName):
-        self.loc = app.myBoard.getRandomPlace()
+    def __init__(self, app, playerName):
+        # self.loc = app.myBoard.getRandomPlace() #returns a tuple
         self.cards = []
         self.myTurn = False
         self.myProperties = []
         self.money = 50000
-        self.ori = self.checkOri()
-        self.color = random.choice(colors)
-        colors.remove(self.color)
+        # self.ori = self.checkOri(app)
+        # self.color = random.choice(colors)
+        # colors.remove(self.color)
         self.playerName = playerName
     
     
     def __repr__(self):
-        return self.playerName
+        return f'Player {self.playerName}'
  
 
     def isLegalMove(self, app, checkingMove):
@@ -213,18 +213,18 @@ class Player:
         return False
 
 
-    def checkOri(self):
+    def checkOri(self, app):
         leftMove = (0, -1)
         rightMove = (0, +1)
         upMove = (+1, 0)
         downMove = (-1, 0)
         for i in (rightMove, leftMove, downMove, upMove):
-            if self.isLegalMove(i):
+            if self.isLegalMove(app, i):
                 ori = i
                 return ori
 
 
-    def changeOri(self): #only modify self.ori
+    def changeOri(self, app): #only modify self.ori
         lastOri = self.ori
         leftMove = (0, -1)
         rightMove = (0, +1)
@@ -245,17 +245,18 @@ class Player:
                 self.ori = checkingMove
 
     def playDice(self):
-        dice = random.number(1,6)
+        dice = random.randint(1,6)
         return dice
 
-    def move(self, dice): # only modify self.loc
+    def move(self, app, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
         for _ in range(dice):
-            if not self.isLegalMove(self.ori):
-                self.changeOri()
+            if not self.isLegalMove(app, self.ori):
+                self.changeOri(app)
             curLocRow += self.ori[0]
             curLocCol += self.ori[1]
             self.loc = curLocRow, curLocCol
+            app.playerInfo[app.curPlayer]['loc'] = self.loc
     
 
     def changeMyTurn(self):
@@ -333,16 +334,29 @@ def playerSettingMode_redrawAll(app, canvas):
                        text=f"Press 'y' to start the game!",
                        font=font, fill='black')
 
+
 def playerSettingMode_mousePressed(app, event):
     name = app.getUserInput('Please enter your name:)')
-    if name != None:
-        app.playerNum += 1
-        app.message = 'Successfully add a player'
+    if app.playerNum < 4:
+        if name != None:
+            app.playerNum += 1
+            app.message = 'Successfully add a player'
+            app.playerNameList.append(name)
+    if app.playerNum == 4:
+            app.message = '''
+                Has reached the maximum of players. Let's start the game!
+            '''
         
-    
+        
+
 def playerSettingMode_keyPressed(app, event):
     if event.key == 'y':
-        app.mode = 'mapChooseMode'
+        if app.playerNum < 2:
+            app.message = "Please add at least two player in total."
+        else:
+            app.mode = 'mapChooseMode'
+    
+
 
 
 # ##########################################
@@ -378,6 +392,21 @@ def mapChooseMode_keyPressed(app, event):
         app.myBoard = Board(board4)
 
     if event.key == 'y':
+        # set players
+        for playerName in app.playerNameList:
+            player = Player(app, playerName)
+            app.playerInfo[player] = dict()
+            loc = app.myBoard.getRandomPlace() #returns a tuple
+            player.loc = loc
+            app.playerInfo[player]["loc"] = player.loc
+            app.playerInfo[player]["myTurn"] = player.myTurn
+            # {Player ic: {'loc': (2, 11), 'myTurn': False}, Player lynn: {'loc': (6, 0), 'myTurn': False}}
+            ori = player.checkOri(app)
+            player.ori = ori
+        app.playerInfoKeysList = list(app.playerInfo)
+        app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1] #app.playerNameList[0]
+        app.whoseTurn = app.curPlayer
+        # modify app mode
         app.mode = 'gameMode'
     
 
@@ -418,11 +447,23 @@ def gameMode_redrawAll(app, canvas):
                        anchor = 'sw',
                        fill = 'black', font = font)
     gameMode_drawBoard(app, canvas)
+    # gameMode_addPlayers(app)
     gameMode_drawPlayer(app, canvas)
+
+    canvas.create_text(app.width/2, 35, text=f"now it's {app.whoseTurn}'s Turn.\
+                                               Press 'r' to roll a dice.",
+                       font=font, fill='black')
+    if type(app.dice) != str:
+        canvas.create_text(app.width/2, 45, text=f"You rolled {app.dice}.",
+                           font=font, fill='blue')
+
+    gameMode_drawGridInfo(app, canvas)
+
 
     
 
 def gameMode_mousePressed(app, event):
+    # instruction page and special cards mode
     x0Ins = app.width * 0.85
     y0Ins = app.height * 0.2
     x1Ins = app.width * 0.95
@@ -431,30 +472,86 @@ def gameMode_mousePressed(app, event):
     y0Card = app.height * 0.35
     x1Card = app.width * 0.95
     y1Card = app.height * 0.45
-    # instruction page
+    
     if x0Ins < event.x < x1Ins and y0Ins < event.y < y1Ins:
         app.mode = 'instructionMode'
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
 
+    # click grids
+    Isocx, Isocy = event.x, event.y
+    twoDcx, twoDcy = isoToTwoD(Isocx, Isocy)
+    col = int((twoDcx - app.width * 0.4) / app.gridWidth)
+    row = int(twoDcy / app.gridHeight)
+    print(f'You click [{row},{col}]')
+    if (((row, col) in app.myBoard.makeDetailedInfo()) and 
+        (app.myBoard.makeDetailedInfo()[(row, col)] != None)):
+        print('it has gridInfo')
+        app.gridInfo = app.myBoard.makeDetailedInfo()[(row, col)]
+
+
+# def gameMode_timerFired(app):
+#     printDetailedInfoOfGrid(app)
+    
+def gameMode_drawGridInfo(app, canvas):
+    if app.gridInfo != None:
+        font = 'Times 28 bold italic'
+        # print(app.myBoard.makeDetailedInfo())
+        # print(app.gridInfo)
+        canvas.create_text(app.width/2, 200, 
+                           text=app.gridInfo, font=font, fill='blue')
+
+
 def gameMode_drawPlayer(app, canvas):
-    pass
+    
+    for eachPlayer in app.playerInfo:
+        
+        loc = app.playerInfo[eachPlayer]['loc'] #returns a tuple
+        # app.playerInfo[player]["loc"] = player.loc
+        # ori = player.checkOri(app)
+        # player.ori = ori
 
-def draw_square(event):
-    x0 = random.randint(30, 370)
-    y0 = random.randint(30, 170)
-    size = random.randint(10, 30)
+        
+        twoDRow, twoDCol = loc[0], loc[1]
 
-    event.widget.create_rectangle(x0, y0, x0+size, y0+size, fill="red")
+        cx = app.gridWidth * twoDCol + app.width * 0.4
+        cy = app.gridHeight * twoDRow
+        isoX, isoY = twoDToIso(cx, cy)
+        playerRadius = 9
+        x0 = isoX - playerRadius
+        y0 = isoY - playerRadius
+        x1 = isoX + playerRadius
+        y1 = isoY + playerRadius
+        canvas.create_oval(x0, y0, x1, y1, fill='black')
+        
+        # if app.playerInfo[eachPlayer]['myTurn'] == True:
+        #     dice = eachPlayer.playDice()
+        #     eachPlayer.move(app, dice)
+        #     eachPlayer.myTurn = False
+
 
 def gameMode_keyPressed(app, event):
-    if event.key == 'r':
-        app.mode = 'mapChooseMode'
+    if event.key == 'r': # A player rolled the dice
+        # app.mode = 'mapChooseMode'
+        # after A rolled the dice, current turn changes
+        app.dice = app.curPlayer.playDice()
+        app.curPlayer.move(app, app.dice)
+        app.curPlayer.myTurn = 'False'
+        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+        app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+        app.curPlayer.myTurn = 'True'
+        app.whoseTurn = app.curPlayer
+        
+
+
 
 
 ###########
 #draw map
 ###########
+# the concept of the calculation of isometric x and y is from 
+# https://gamedevelopment.tutsplus.com/tutorials/
+# creating-isometric-worlds-a-primer-for-game-developers--gamedev-6511
 def twoDToIso(twoDx, twoDy):
     isoX = twoDx - twoDy
     isoY = (twoDx + twoDy) / 2
@@ -474,18 +571,15 @@ def gameMode_drawBoard(app, canvas):
                     placeNoneGrid(app, canvas, cx, cy)
                 else:
                     placeGrid(app, canvas, cx, cy)
-
-                
-            
-
+                    
 
 def placeGrid(app, canvas, cx, cy):
-    twoDcx, twoDcy = twoDToIso(cx, cy)
+    Isocx, Isocy = twoDToIso(cx, cy)
 
-    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
-    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
-    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
-    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
+    isox0, isoy0 = Isocx, Isocy - app.gridHeight/2
+    isox1, isoy1 = Isocx + app.gridWidth, Isocy
+    isox2, isoy2 = Isocx, Isocy + app.gridHeight/2
+    isox3, isoy3 = Isocx - app.gridWidth, Isocy
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
     canvas.create_polygon(coord, fill='pink', outline='black')
 
@@ -509,6 +603,19 @@ def placeNoneGrid(app, canvas, cx, cy):
     isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
     canvas.create_polygon(coord, fill='purple', outline='black')
+
+
+
+###########
+#click map
+###########
+# the concept of the calculation of twoD x and twoD y is from 
+# https://gamedevelopment.tutsplus.com/tutorials/
+# creating-isometric-worlds-a-primer-for-game-developers--gamedev-6511
+def isoToTwoD(isoX, isoY):
+    twoDx = (2 * isoY + isoX) / 2
+    twoDy = (2 * isoY - isoX) / 2
+    return twoDx, twoDy
 
 ##########################################
 # Instruction Mode
@@ -554,8 +661,13 @@ def appStarted(app):
     app.index = 1
     app.playerNum = 0
     app.message = 'Click the mouse to add a player!'
-
-
+    app.playerNameList = list()
+    app.playerInfo = dict()
+    app.curPlayerIndex = 1
+    # if app.playerNum != 0:
+    #     app.curPlayer = app.playerNameList[app.curPlayerIndex]
+    app.dice = 'Please roll the dice.'
+    app.gridInfo = None
 runApp(width=900, height=600)
 
 
