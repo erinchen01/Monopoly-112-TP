@@ -116,51 +116,7 @@ board4 = [[0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
 class Board():
     def __init__(self, selectedBoard):
         self.map = selectedBoard
-        self.detailedInfo = self.makeDetailedInfo()
-    
-    def makeDetailedInfo(self):
-
-        nameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
-                    'Pembrokeshire Coast', 'North York Moors','Yorkshire Dales',
-                    'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
-                    'Cairngorms', 'New Forest', 'South Downs',
-                    'Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
-                    'Rifle Mountain Park', 'Fairmount Park', 'City Park',
-                    'Zilker Park', 'The Gathering Place', 'Papago Park']
-        index = 0
-        detailedInfo = dict()
-        rows, cols = self.getDims()
-        for row in range(rows):
-            for col in range(cols):
-                coord = (row, col)
-                if self.map[row][col] != 0:
-                    if index == 7:
-                        gridName = 'prison'
-                    elif 0 < index % 7 % 4 <= 3:
-                        gridName = None
-                        gridPriceToBuy = 0
-                    else:
-                        gridName = random.choice(nameList)
-                        gridPriceToBuy = random.randint(3000, 6000)
-                    if (gridName is not None) and (gridName is not 'prison'):
-                            nameList.remove(gridName)
-                    detailedInfo[coord] = dict()
-                    self.map[row][col] = Grid(gridName, gridPriceToBuy) #####
-                    grid = self.map[row][col]
-                    if gridName != None:
-                        detailedInfo[coord]['property name'] = gridName
-                        detailedInfo[coord]['price to buy'] = grid.priceToBuy
-                        if grid.owner != None:
-                            detailedInfo[coord]['owner'] = grid.owner
-                            detailedInfo[coord]['cost to upgrade'] = (
-                                                            grid.priceToUpgrade)
-                            detailedInfo[coord]['toll'] = (grid.toll)
-                        detailedInfo[coord]['owner'] = 'No Owner'
-                    else:
-                        detailedInfo[coord] = None
-                    index += 1
-        return detailedInfo
-
+        # self.detailedInfo = self.makeDetailedInfo()
 
     def getDims(self):
         rows = len(self.map)
@@ -191,7 +147,7 @@ class Player:
         self.myTurn = False
         self.myProperties = []
         self.money = 50000
-        # self.ori = self.checkOri(app)
+        # self.ori = (0, -1)
         # self.color = random.choice(colors)
         # colors.remove(self.color)
         self.playerName = playerName
@@ -208,7 +164,7 @@ class Player:
 
         if ((0 <= curLocRow + dRow < boardRows) and 
             (0 <= curLocCol + dCol < boardCols) and
-            isinstance(app.myBoard.map[curLocRow + dRow][curLocCol + dCol], Grid)):
+            app.myBoard.map[curLocRow + dRow][curLocCol + dCol]):
             return True
         return False
 
@@ -218,9 +174,9 @@ class Player:
         rightMove = (0, +1)
         upMove = (+1, 0)
         downMove = (-1, 0)
-        for i in (rightMove, leftMove, downMove, upMove):
-            if self.isLegalMove(app, i):
-                ori = i
+        for ori in (rightMove, leftMove, downMove, upMove):
+            print(f'ori that is currently checking = {ori}')
+            if self.isLegalMove(app, ori):
                 return ori
 
 
@@ -251,6 +207,7 @@ class Player:
     def move(self, app, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
         for _ in range(dice):
+            print(self.ori)
             if not self.isLegalMove(app, self.ori):
                 self.changeOri(app)
             curLocRow += self.ori[0]
@@ -336,17 +293,7 @@ def playerSettingMode_redrawAll(app, canvas):
 
 
 def playerSettingMode_mousePressed(app, event):
-    name = app.getUserInput('Please enter your name:)')
-    if app.playerNum < 4:
-        if name != None:
-            app.playerNum += 1
-            app.message = 'Successfully add a player'
-            app.playerNameList.append(name)
-    if app.playerNum == 4:
-            app.message = '''
-                Has reached the maximum of players. Let's start the game!
-            '''
-        
+    pass
         
 
 def playerSettingMode_keyPressed(app, event):
@@ -355,6 +302,18 @@ def playerSettingMode_keyPressed(app, event):
             app.message = "Please add at least two player in total."
         else:
             app.mode = 'mapChooseMode'
+    else:
+        name = app.getUserInput('Please enter your name:)')
+        if app.playerNum < 4:
+            if name != None:
+                app.playerNum += 1
+                app.message = 'Successfully add a player'
+                app.playerNameList.append(name)
+        if app.playerNum == 4:
+                app.message = '''
+                    Has reached the maximum of players. Let's start the game!
+                '''
+
     
 
 
@@ -366,11 +325,11 @@ def playerSettingMode_keyPressed(app, event):
 def mapChooseMode_redrawAll(app, canvas):
     font = 'Times 28 bold italic'
     canvas.create_text(app.width/2, app.height/8, 
-                       text="Please press left and right key to choose the map",
-                       font=font, fill='black')
+                    text="Please press left and right key to choose the map",
+                    font=font, fill='black')
     canvas.create_text(app.width/2, app.height/5.7, 
-                       text="Press 'y' to start the game!",
-                       font=font, fill='black')
+                    text="Press 'y' to start the game!",
+                    font=font, fill='black')
     mapChooseMode_drawBoard(app, canvas)
 
 
@@ -396,20 +355,73 @@ def mapChooseMode_keyPressed(app, event):
         for playerName in app.playerNameList:
             player = Player(app, playerName)
             app.playerInfo[player] = dict()
+
             loc = app.myBoard.getRandomPlace() #returns a tuple
             player.loc = loc
+            
             app.playerInfo[player]["loc"] = player.loc
             app.playerInfo[player]["myTurn"] = player.myTurn
+            print(app.playerInfo)
             # {Player ic: {'loc': (2, 11), 'myTurn': False}, Player lynn: {'loc': (6, 0), 'myTurn': False}}
             ori = player.checkOri(app)
             player.ori = ori
         app.playerInfoKeysList = list(app.playerInfo)
         app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1] #app.playerNameList[0]
+        print(f'''
+        type = {type(app.curPlayer)}, cards = {app.curPlayer.cards}, 
+        ori = {app.curPlayer.ori}
+        ''')
         app.whoseTurn = app.curPlayer
+        
+        # set grids in Board
+        makeDetailedInfo(app)
+
         # modify app mode
         app.mode = 'gameMode'
-    
 
+
+def makeDetailedInfo(app): #modify app.boardDetailedInfo
+
+    nameList = ['Peak District', 'Lake District', 'Snowdonia', 'Dartmoor',
+                'Pembrokeshire Coast', 'North York Moors','Yorkshire Dales',
+                'Exmoor', 'Northumberland', 'Brecon Beacons', 'The Broads',
+                'Cairngorms', 'New Forest', 'South Downs',
+                'Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
+                'Rifle Mountain Park', 'Fairmount Park', 'City Park',
+                'Zilker Park', 'The Gathering Place', 'Papago Park']
+    index = 0
+    app.boardDetailedInfo = dict()
+    rows, cols = app.myBoard.getDims()
+    for row in range(rows):
+        for col in range(cols):
+            coord = (row, col)
+            if app.myBoard.map[row][col] != 0:
+                if index == 7:
+                    gridName = 'prison'
+                    app.boardDetailedInfo[coord] = gridName
+                    app.myBoard.map[row][col] = Grid(gridName, 0)
+                elif 0 < index % 7 % 4 <= 3:
+                    gridName = None
+                    gridPriceToBuy = 0
+                    app.boardDetailedInfo[coord] = None
+                else:
+                    gridName = random.choice(nameList)
+                    gridPriceToBuy = random.randint(3000, 6000)
+                    app.boardDetailedInfo[coord] = dict()
+                    app.myBoard.map[row][col] = Grid(gridName, gridPriceToBuy) #####
+                    grid = app.myBoard.map[row][col]
+                if (gridName is not None) and (gridName is not 'prison'):
+                        nameList.remove(gridName)
+                        app.boardDetailedInfo[coord]['property name'] = gridName
+                        app.boardDetailedInfo[coord]['price to buy'] = (
+                                                                gridPriceToBuy)
+                        app.boardDetailedInfo[coord]['owner'] = 'No Owner'
+                        if grid.owner != None:
+                            app.boardDetailedInfo[coord]['owner'] = grid.owner
+                            app.boardDetailedInfo[coord]['cost to upgrade'] = (
+                                                            grid.priceToUpgrade)
+                            app.boardDetailedInfo[coord]['toll'] = (grid.toll)
+                index += 1
 
 def mapChooseMode_drawBoard(app, canvas):
     rows, cols = app.myBoard.getDims()
@@ -460,8 +472,6 @@ def gameMode_redrawAll(app, canvas):
     gameMode_drawGridInfo(app, canvas)
 
 
-    
-
 def gameMode_mousePressed(app, event):
     # instruction page and special cards mode
     x0Ins = app.width * 0.85
@@ -484,10 +494,10 @@ def gameMode_mousePressed(app, event):
     col = int((twoDcx - app.width * 0.4) / app.gridWidth)
     row = int(twoDcy / app.gridHeight)
     print(f'You click [{row},{col}]')
-    if (((row, col) in app.myBoard.makeDetailedInfo()) and 
-        (app.myBoard.makeDetailedInfo()[(row, col)] != None)):
+    if (((row, col) in app.boardDetailedInfo) and 
+        (app.boardDetailedInfo[(row, col)] != None)):
         print('it has gridInfo')
-        app.gridInfo = app.myBoard.makeDetailedInfo()[(row, col)]
+        app.gridInfo = app.boardDetailedInfo[(row, col)]
 
 
 # def gameMode_timerFired(app):
@@ -535,6 +545,7 @@ def gameMode_keyPressed(app, event):
         # app.mode = 'mapChooseMode'
         # after A rolled the dice, current turn changes
         app.dice = app.curPlayer.playDice()
+        print(f'line 544, curOri = {app.curPlayer.ori}')
         app.curPlayer.move(app, app.dice)
         app.curPlayer.myTurn = 'False'
         app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
@@ -565,9 +576,10 @@ def gameMode_drawBoard(app, canvas):
                 cx = app.gridWidth * col + app.width * 0.4
                 cy = app.gridHeight * row
                 
-                if app.myBoard.map[row][col].name == 'prison':
+                # if app.myBoard.map[row][col].name == 'prison':
+                if app.boardDetailedInfo[(row, col)] == 'prison':
                     placePrisonGrid(app, canvas, cx, cy)
-                elif app.myBoard.map[row][col].name == None:
+                elif app.boardDetailedInfo[(row, col)] == None:
                     placeNoneGrid(app, canvas, cx, cy)
                 else:
                     placeGrid(app, canvas, cx, cy)
