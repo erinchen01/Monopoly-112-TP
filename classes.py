@@ -470,22 +470,24 @@ def gameMode_redrawAll(app, canvas):
                        anchor = 'sw',
                        fill = 'black', font = font)
     gameMode_drawBoard(app, canvas)
-    # gameMode_addPlayers(app)
     gameMode_drawPlayer(app, canvas)
 
     canvas.create_text(app.width/2, 35, text=f"now it's {app.whoseTurn}'s Turn.\
                                                Press 'r' to roll a dice.",
                        font=font, fill='black')
+    # msg of rolling dice
     if type(app.dice) != str:
         canvas.create_text(app.width/2, 45, text=f"You rolled {app.dice}.",
                            font=font, fill='blue')
     
     if app.clickGrid == True:
         gameMode_drawGridInfo(app, canvas)
-    if app.clickInstruction == True:
-        print('app.clickInstruction == True')
+
+    if app.openInstruction == True:
+        print('app.openInstruction == True')
         gameMode_drawInstruction(app, canvas)
     
+
 
 
 def gameMode_mousePressed(app, event):
@@ -499,12 +501,11 @@ def gameMode_mousePressed(app, event):
     x1Card = app.width * 0.95
     y1Card = app.height * 0.45
     
-    if ((app.clickInstruction == False) and 
+    if ((app.openInstruction == False) and 
         (x0Ins < event.x < x1Ins) and 
         (y0Ins < event.y < y1Ins)):
-        print('here')
-        app.clickInstruction = True
-        print(event.x,event.y)
+        print('openInstruction')
+        app.openInstruction = True
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
 
@@ -514,8 +515,7 @@ def gameMode_mousePressed(app, event):
     col = roundHalfUp((twoDx - app.width * 0.4) / app.gridWidth)
     row = roundHalfUp(twoDy / app.gridHeight)
     app.clickTime = time.time()
-    print(f'You clicked ({row},{col})')
-    # print(app.boardDetailedInfo)
+
     if (((row, col) in app.boardDetailedInfo) and 
         (app.boardDetailedInfo[(row, col)] != None)):
         print('it has gridInfo')
@@ -551,16 +551,9 @@ def gameMode_drawGridInfo(app, canvas):
 
 def gameMode_drawPlayer(app, canvas):
     
-    for eachPlayer in app.playerInfo:
-        
+    for eachPlayer in app.playerInfo:     
         loc = app.playerInfo[eachPlayer]['loc'] #returns a tuple
-        # app.playerInfo[player]["loc"] = player.loc
-        # ori = player.checkOri(app)
-        # player.ori = ori
-
-        
         twoDRow, twoDCol = loc[0], loc[1]
-
         cx = app.gridWidth * twoDCol + app.width * 0.4
         cy = app.gridHeight * twoDRow
         isoX, isoY = twoDToIso(cx, cy)
@@ -571,15 +564,9 @@ def gameMode_drawPlayer(app, canvas):
         y1 = isoY + playerRadius
         canvas.create_oval(x0, y0, x1, y1, fill='black')
         
-        # if app.playerInfo[eachPlayer]['myTurn'] == True:
-        #     dice = eachPlayer.playDice()
-        #     eachPlayer.move(app, dice)
-        #     eachPlayer.myTurn = False
-
 
 def gameMode_keyPressed(app, event):
     if event.key == 'r': # A player rolled the dice
-        # app.mode = 'mapChooseMode'
         # after A rolled the dice, current turn changes
         app.dice = app.curPlayer.playDice()
         print(f'line 544, curOri = {app.curPlayer.ori}')
@@ -589,14 +576,11 @@ def gameMode_keyPressed(app, event):
         app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
         app.curPlayer.myTurn = 'True'
         app.whoseTurn = app.curPlayer
-    if app.clickInstruction == True and event.key == 'Escape':
-        print('yes')
-        app.clickInstruction == False
-        print('app.clickInstruction == False')
+    if app.openInstruction == True and event.key == 'Escape':
+        print('openInstruction == False')
+        app.openInstruction = False
 
         
-
-
 
 
 ###########
@@ -712,13 +696,12 @@ def appStarted(app):
     app.playerNameList = list()
     app.playerInfo = dict()
     app.curPlayerIndex = 1
-    # if app.playerNum != 0:
-    #     app.curPlayer = app.playerNameList[app.curPlayerIndex]
+
     app.dice = 'Please roll the dice.'
     app.gridInfo = None
     app.clickGrid = False # keep track of whether the player clicked grids
-    app.clickInstruction = False
     app.wantToReturn = False
+    app.openInstruction = False
 
 
 def timerFired(app):
