@@ -1,10 +1,17 @@
 from cmu_112_graphics import *
 
-import random, tkinter
+import random, tkinter, time
 
 ##########################################
 # Grid class
 ##########################################
+import decimal
+# This function is taken from 112 cource website
+def roundHalfUp(d):
+    rounding = decimal.ROUND_HALF_UP
+    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
+
+
 
 class Grid:
     def __init__(self, gridName, gridPriceToBuy):
@@ -299,20 +306,24 @@ def playerSettingMode_mousePressed(app, event):
 def playerSettingMode_keyPressed(app, event):
     if event.key == 'y':
         if app.playerNum < 2:
-            app.message = "Please add at least two player in total."
+            app.message = "Please add at least two players in total."
         else:
             app.mode = 'mapChooseMode'
     else:
         name = app.getUserInput('Please enter your name:)')
-        if app.playerNum < 4:
-            if name != None:
-                app.playerNum += 1
-                app.message = 'Successfully add a player'
-                app.playerNameList.append(name)
-        if app.playerNum == 4:
-                app.message = '''
-                    Has reached the maximum of players. Let's start the game!
-                '''
+        print(f'name = {repr(name)}')
+        if name == '':
+            app.message = 'Please type in a name.'
+        else:
+            if app.playerNum < 4:
+                if name != None:
+                    app.playerNum += 1
+                    app.message = 'Successfully add a player'
+                    app.playerNameList.append(name)
+            if app.playerNum == 4:
+                    app.message = '''
+                        Has reached the maximum of players. Let's start the game!
+                    '''
 
     
 
@@ -468,8 +479,13 @@ def gameMode_redrawAll(app, canvas):
     if type(app.dice) != str:
         canvas.create_text(app.width/2, 45, text=f"You rolled {app.dice}.",
                            font=font, fill='blue')
-
-    gameMode_drawGridInfo(app, canvas)
+    
+    if app.clickGrid == True:
+        gameMode_drawGridInfo(app, canvas)
+    if app.clickInstruction == True:
+        print('app.clickInstruction == True')
+        gameMode_drawInstruction(app, canvas)
+    
 
 
 def gameMode_mousePressed(app, event):
@@ -483,33 +499,54 @@ def gameMode_mousePressed(app, event):
     x1Card = app.width * 0.95
     y1Card = app.height * 0.45
     
-    if x0Ins < event.x < x1Ins and y0Ins < event.y < y1Ins:
-        app.mode = 'instructionMode'
+    if ((app.clickInstruction == False) and 
+        (x0Ins < event.x < x1Ins) and 
+        (y0Ins < event.y < y1Ins)):
+        print('here')
+        app.clickInstruction = True
+        print(event.x,event.y)
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
 
     # click grids
-    Isocx, Isocy = event.x, event.y
-    twoDcx, twoDcy = isoToTwoD(Isocx, Isocy)
-    col = int((twoDcx - app.width * 0.4) / app.gridWidth)
-    row = int(twoDcy / app.gridHeight)
-    print(f'You click [{row},{col}]')
+    Isox, Isoy = event.x, event.y
+    twoDx, twoDy = isoToTwoD(Isox, Isoy)
+    col = roundHalfUp((twoDx - app.width * 0.4) / app.gridWidth)
+    row = roundHalfUp(twoDy / app.gridHeight)
+    app.clickTime = time.time()
+    print(f'You clicked ({row},{col})')
+    # print(app.boardDetailedInfo)
     if (((row, col) in app.boardDetailedInfo) and 
         (app.boardDetailedInfo[(row, col)] != None)):
         print('it has gridInfo')
+        app.clickGrid = True
         app.gridInfo = app.boardDetailedInfo[(row, col)]
+        app.gridClicked = (row, col)
 
-
-# def gameMode_timerFired(app):
-#     printDetailedInfoOfGrid(app)
     
+def gameMode_timerFired(app):
+    if (app.clickGrid == True) and (time.time() - app.clickTime > 2):
+        app.clickGrid = False
+        
+        
 def gameMode_drawGridInfo(app, canvas):
-    if app.gridInfo != None:
-        font = 'Times 28 bold italic'
-        # print(app.myBoard.makeDetailedInfo())
-        # print(app.gridInfo)
-        canvas.create_text(app.width/2, 200, 
-                           text=app.gridInfo, font=font, fill='blue')
+    row, col = app.gridClicked
+    gridcx, gridcy = app.gridWidth * col + app.width * 0.4, app.gridHeight * row
+    gridIsocx, gridIsocy = twoDToIso(gridcx, gridcy)
+    x0, y0 = gridIsocx - app.width * 0.07, gridIsocy - app.height * 0.12
+    x1, y1 = gridIsocx + app.width * 0.07, gridIsocy - app.height * 0.02
+    canvas.create_rectangle(x0, y0, x1, y1, fill = '#FFEC8B')
+
+
+    font = 'Times 11 bold'
+    text = ''
+    for key in app.gridInfo:
+        if key == 'property name':
+            text += f'{key} :\n{app.gridInfo[key]}\n'
+        else:
+            text += f'{key} : {app.gridInfo[key]}\n'
+    canvas.create_text(gridIsocx, (y1+y0)/2, 
+                           text=text, font=font, fill='#8B3A3A')
 
 
 def gameMode_drawPlayer(app, canvas):
@@ -552,6 +589,11 @@ def gameMode_keyPressed(app, event):
         app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
         app.curPlayer.myTurn = 'True'
         app.whoseTurn = app.curPlayer
+    if app.clickInstruction == True and event.key == 'Escape':
+        print('yes')
+        app.clickInstruction == False
+        print('app.clickInstruction == False')
+
         
 
 
@@ -593,7 +635,7 @@ def placeGrid(app, canvas, cx, cy):
     isox2, isoy2 = Isocx, Isocy + app.gridHeight/2
     isox3, isoy3 = Isocx - app.gridWidth, Isocy
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='pink', outline='black')
+    canvas.create_polygon(coord, fill='#BFEFFF', outline='black')
 
 
 def placePrisonGrid(app, canvas, cx, cy):
@@ -614,7 +656,7 @@ def placeNoneGrid(app, canvas, cx, cy):
     isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
     isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
     coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='purple', outline='black')
+    canvas.create_polygon(coord, fill='#8B8970', outline='black')
 
 
 
@@ -629,20 +671,14 @@ def isoToTwoD(isoX, isoY):
     twoDy = (2 * isoY - isoX) / 2
     return twoDx, twoDy
 
-##########################################
-# Instruction Mode
-##########################################
+##################
+# Instruction Canvas
+##################
 
-def instructionMode_redrawAll(app, canvas):
-    font = 'Times 28 bold italic'
-    canvas.create_text(app.width/2, 200, text='This is the instruction!', 
-                       font=font, fill='black')
-    canvas.create_text(app.width/2, 300, text='Press r to return to the game!',
-                       font=font, fill='black')
-
-def instructionMode_keyPressed(app, event):
-    if event.key == 'r':
-        app.mode = 'gameMode'
+def gameMode_drawInstruction(app, canvas):
+    x0, y0 = app.width * 0.2, app.height * 0.2
+    x1, y1 = app.width * 0.8, app.height * 0.8
+    canvas.create_rectangle(x0, y0, x1, y1, fill = '#FFEC8B')
 
 ##########################################
 # Special cards Mode
@@ -672,7 +708,7 @@ def appStarted(app):
     app.myBoard = Board(board1)
     app.index = 1
     app.playerNum = 0
-    app.message = 'Click the mouse to add a player!'
+    app.message = 'Press any key to add a player!'
     app.playerNameList = list()
     app.playerInfo = dict()
     app.curPlayerIndex = 1
@@ -680,6 +716,16 @@ def appStarted(app):
     #     app.curPlayer = app.playerNameList[app.curPlayerIndex]
     app.dice = 'Please roll the dice.'
     app.gridInfo = None
+    app.clickGrid = False # keep track of whether the player clicked grids
+    app.clickInstruction = False
+    app.wantToReturn = False
+
+
+def timerFired(app):
+    if app.mode == 'gameMode':
+        gameMode_timerFired(app)
+
+
 runApp(width=900, height=600)
 
 
