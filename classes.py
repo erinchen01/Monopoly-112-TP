@@ -1,17 +1,14 @@
 from cmu_112_graphics import *
 
-import random, tkinter, time
+import random, tkinter, time, decimal
 
 ##########################################
 # Grid class
 ##########################################
-import decimal
-# This function is taken from 112 cource website
+# This function of roundHalfUp(d) is taken from 112 cource website
 def roundHalfUp(d):
     rounding = decimal.ROUND_HALF_UP
     return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
-
-
 
 class Grid:
     def __init__(self, gridName, gridPriceToBuy):
@@ -123,7 +120,6 @@ board4 = [[0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
 class Board():
     def __init__(self, selectedBoard):
         self.map = selectedBoard
-        # self.detailedInfo = self.makeDetailedInfo()
 
     def getDims(self):
         rows = len(self.map)
@@ -149,7 +145,6 @@ class Board():
 
 class Player:
     def __init__(self, app, playerName):
-        # self.loc = app.myBoard.getRandomPlace() #returns a tuple
         self.cards = []
         self.myTurn = False
         self.myProperties = []
@@ -182,7 +177,6 @@ class Player:
         upMove = (+1, 0)
         downMove = (-1, 0)
         for ori in (rightMove, leftMove, downMove, upMove):
-            print(f'ori that is currently checking = {ori}')
             if self.isLegalMove(app, ori):
                 return ori
 
@@ -214,13 +208,13 @@ class Player:
     def move(self, app, dice): # only modify self.loc
         curLocRow, curLocCol = self.loc
         for _ in range(dice):
-            print(self.ori)
             if not self.isLegalMove(app, self.ori):
                 self.changeOri(app)
             curLocRow += self.ori[0]
             curLocCol += self.ori[1]
             self.loc = curLocRow, curLocCol
-            app.playerInfo[app.curPlayer]['loc'] = self.loc
+        app.playerInfo[app.curPlayer]['loc'] = self.loc
+        # print(f'correct:{app.curPlayer} moved to {self.loc}')
     
 
     def changeMyTurn(self):
@@ -228,12 +222,11 @@ class Player:
         
 
     def buyProperty(self, app):
-        curRow, curCol = self.loc
+        curRow, curCol = app.row, app.col
         grid = app.myBoard.map[curRow][curCol]
-        # modify the params of the grid
-        grid.buying(self)
-
-        # modify the params of players
+        # # modify the params of the grid
+        # grid.buying(self)
+        # # modify the params of players
         self.myProperties.append(grid)
         self.money -= grid.priceToBuy
 
@@ -263,7 +256,7 @@ class Player:
 Now you have {self.money} dollars left.\
         '''
 
-# The concept of mode is learnt from 112 course website
+
 ##########################################
 # Splash Screen Mode
 ##########################################
@@ -273,7 +266,7 @@ def splashScreenMode_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height/3, text='Monopoly',
                        font=font, fill='black')
     canvas.create_text(app.width/2, app.height/2.5, 
-                       text='Press y to start the game!',
+                       text='Press y to start!',
                        font=font, fill='black')
 
 
@@ -311,7 +304,6 @@ def playerSettingMode_keyPressed(app, event):
             app.mode = 'mapChooseMode'
     else:
         name = app.getUserInput('Please enter your name:)')
-        print(f'name = {repr(name)}')
         if name == '':
             app.message = 'Please type in a name.'
         else:
@@ -326,8 +318,6 @@ def playerSettingMode_keyPressed(app, event):
                     '''
 
     
-
-
 
 # ##########################################
 # # Map Choose Mode
@@ -372,16 +362,10 @@ def mapChooseMode_keyPressed(app, event):
             
             app.playerInfo[player]["loc"] = player.loc
             app.playerInfo[player]["myTurn"] = player.myTurn
-            print(app.playerInfo)
-            # {Player ic: {'loc': (2, 11), 'myTurn': False}, Player lynn: {'loc': (6, 0), 'myTurn': False}}
             ori = player.checkOri(app)
             player.ori = ori
         app.playerInfoKeysList = list(app.playerInfo)
         app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1] #app.playerNameList[0]
-        print(f'''
-        type = {type(app.curPlayer)}, cards = {app.curPlayer.cards}, 
-        ori = {app.curPlayer.ori}
-        ''')
         app.whoseTurn = app.curPlayer
         
         # set grids in Board
@@ -471,10 +455,7 @@ def gameMode_redrawAll(app, canvas):
                        fill = 'black', font = font)
     gameMode_drawBoard(app, canvas)
     gameMode_drawPlayer(app, canvas)
-
-    canvas.create_text(app.width/2, 35, text=f"now it's {app.whoseTurn}'s Turn.\
-                                               Press 'r' to roll a dice.",
-                       font=font, fill='black')
+    
     # msg of rolling dice
     if type(app.dice) != str:
         canvas.create_text(app.width/2, 45, text=f"You rolled {app.dice}.",
@@ -484,9 +465,36 @@ def gameMode_redrawAll(app, canvas):
         gameMode_drawGridInfo(app, canvas)
 
     if app.openInstruction == True:
-        print('app.openInstruction == True')
         gameMode_drawInstruction(app, canvas)
     
+    if app.askBuy == True:
+        gameMode_askBuy(app, canvas)
+    elif app.askUpgrade == True:
+        gameMode_askUpgrade(app, canvas)
+    elif app.askToPayToll == True:
+        gameMode_askToPayToll(app, canvas)
+    
+    canvas.create_text(app.width/2, 35, text=f"now it's {app.whoseTurn}'s Turn.\
+                                               Press 'r' to roll a dice.",
+                       font=font, fill='black')
+    print(f"In reDrawAll, it's {app.whoseTurn}'s turn.")
+
+def gameMode_askBuy(app, canvas):
+    text = 'Do you want to buy the land?'
+    font = 'Times 11'
+    canvas.create_text(app.width/2, app.height/3, text=text, font=font)
+
+
+def gameMode_askUpgrade(app, canvas):
+    text = 'Do you want to upgrade the land?'
+    font = 'Times 11'
+    canvas.create_text(app.width/2, app.height/3, text=text, font=font)
+
+def gameMode_askToPayToll(app, canvas):
+    text = 'Bad luck! You have to pay toll'
+    font = 'Times 11'
+    canvas.create_text(app.width/2, app.height/3, text=text, font=font)
+
 
 
 
@@ -504,7 +512,6 @@ def gameMode_mousePressed(app, event):
     if ((app.openInstruction == False) and 
         (x0Ins < event.x < x1Ins) and 
         (y0Ins < event.y < y1Ins)):
-        print('openInstruction')
         app.openInstruction = True
     elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
         app.mode = 'specialCardsMode'
@@ -518,7 +525,6 @@ def gameMode_mousePressed(app, event):
 
     if (((row, col) in app.boardDetailedInfo) and 
         (app.boardDetailedInfo[(row, col)] != None)):
-        print('it has gridInfo')
         app.clickGrid = True
         app.gridInfo = app.boardDetailedInfo[(row, col)]
         app.gridClicked = (row, col)
@@ -527,6 +533,7 @@ def gameMode_mousePressed(app, event):
 def gameMode_timerFired(app):
     if (app.clickGrid == True) and (time.time() - app.clickTime > 2):
         app.clickGrid = False
+    updateDetailedInfoDict(app)
         
         
 def gameMode_drawGridInfo(app, canvas):
@@ -563,24 +570,98 @@ def gameMode_drawPlayer(app, canvas):
         x1 = isoX + playerRadius
         y1 = isoY + playerRadius
         canvas.create_oval(x0, y0, x1, y1, fill='black')
-        
+
 
 def gameMode_keyPressed(app, event):
+    
+
     if event.key == 'r': # A player rolled the dice
         # after A rolled the dice, current turn changes
         app.dice = app.curPlayer.playDice()
-        print(f'line 544, curOri = {app.curPlayer.ori}')
         app.curPlayer.move(app, app.dice)
-        app.curPlayer.myTurn = 'False'
-        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-        app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-        app.curPlayer.myTurn = 'True'
-        app.whoseTurn = app.curPlayer
-    if app.openInstruction == True and event.key == 'Escape':
-        print('openInstruction == False')
-        app.openInstruction = False
+
+        #####
+        row, col = app.curPlayer.loc
+        app.row, app.col = row, col
+        
+
+        #########
+        if (app.boardDetailedInfo[(row, col)] != None and
+            app.myBoard.map[row][col].name != 'prison'):
+            if app.boardDetailedInfo[(row, col)]['owner'] == None:
+                app.askBuy = True
+            elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
+                app.askUpgrade = True
+            elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
+                app.askToPayToll = True
+
+        if app.openInstruction == True and event.key == 'Escape':
+            app.openInstruction = False
+        ######
 
         
+        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+        print(f'askBuy: {app.askBuy}, askUpgrade: {app.askUpgrade}')
+        if not app.askBuy and not app.askUpgrade:
+            app.curPlayer.myTurn = 'False'
+            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+            app.curPlayer = nextPlayer
+            app.curPlayer.myTurn = 'True'
+            app.whoseTurn = nextPlayer
+            print(f"{app.whoseTurn}'s turn")
+
+        
+    if event.key == 'y' or 'n':
+        row, col = app.row, app.col
+        if event.key == 'y':
+            if ((app.myBoard.map[row][col] != 0) and 
+                (app.myBoard.map[row][col] != 1) and
+                (app.myBoard.map[row][col].name != None) and
+                (app.myBoard.map[row][col].name != 'prison')): #eligible properties
+                # buy 
+                print('this is an eligible property')
+                print(f'whether to ask buy: {app.askBuy}')
+                if app.askBuy:
+                    # curRow, curCol = app.playerInfo[app.curPlayer]['loc']
+                    # print('want to buy')
+                    app.curPlayer.buyProperty(app)
+                    app.myBoard.map[row][col].buying(app.curPlayer)
+                    app.askBuy = False
+                elif app.askUpgrade:
+                    app.curPlayer.upgradeProperty()
+                    print('want to upgrade')
+                    app.askUpgrade = False
+                    # grid upgrade()
+        elif event.key == 'n':
+            app.askBuy = False
+            app.askUpgrade = False
+
+        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+        app.curPlayer.myTurn = 'False'
+        nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+        app.curPlayer = nextPlayer
+        app.curPlayer.myTurn = 'True'
+        app.whoseTurn = nextPlayer
+
+       
+
+def updateDetailedInfoDict(app):
+    rows, cols = app.myBoard.getDims()
+    for row in range(rows):
+        for col in range(cols):
+            if (isinstance(app.myBoard.map[row][col], Grid) and 
+                app.myBoard.map[row][col] != 1 and 
+                app.myBoard.map[row][col].name != 'prison'):
+                # print(app.myBoard.map[row][col])
+
+                grid = app.myBoard.map[row][col]
+                coord = (row, col)
+                # print(app.boardDetailedInfo[coord])
+                app.boardDetailedInfo[coord]['price to buy'] = grid.priceToBuy
+                app.boardDetailedInfo[coord]['owner'] = grid.owner
+                app.boardDetailedInfo[coord]['cost to upgrade'] = (
+                grid.priceToUpgrade)
+                app.boardDetailedInfo[coord]['toll'] = grid.toll
 
 
 ###########
@@ -602,7 +683,6 @@ def gameMode_drawBoard(app, canvas):
                 cx = app.gridWidth * col + app.width * 0.4
                 cy = app.gridHeight * row
                 
-                # if app.myBoard.map[row][col].name == 'prison':
                 if app.boardDetailedInfo[(row, col)] == 'prison':
                     placePrisonGrid(app, canvas, cx, cy)
                 elif app.boardDetailedInfo[(row, col)] == None:
@@ -703,6 +783,10 @@ def appStarted(app):
     app.wantToReturn = False
     app.openInstruction = False
 
+    app.askBuy = False
+    app.askUpgrade = False
+    app.askToPayToll = False
+
 
 def timerFired(app):
     if app.mode == 'gameMode':
@@ -710,30 +794,3 @@ def timerFired(app):
 
 
 runApp(width=900, height=600)
-
-
-# Please ignore the code below
-
-
-
-
-
-# def keyPressed(app, event):
-#     app.message = f"event.key == '{event.key}'"
-
-# def redrawAll(app, canvas):
-#     canvas.create_text(app.width/2, 40, text=app.message,
-#                        font='Arial 30 bold', fill='black')
-    
-#     keyNamesText = '''Here are the legal event.key names:
-#                       * Keyboard key labels (letters, digits, punctuation)
-#                       * Arrow directions ('Up', 'Down', 'Left', 'Right')
-#                       * Whitespace ('Space', 'Enter', 'Tab', 'BackSpace')
-#                       * Other commands ('Delete', 'Escape')'''
-
-#     y = 80
-#     for line in keyNamesText.splitlines():
-#         canvas.create_text(app.width/2, y, text=line.strip(),
-#                            font='Arial 20', fill='black')
-#         y += 30
-
