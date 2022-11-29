@@ -2,6 +2,21 @@ from cmu_112_graphics import *
 
 import random, tkinter, time, decimal
 
+
+class Button:
+    def __init__(self, buttonName, coord):
+        self.name = buttonName
+        self.enabled = False
+        self.coord = coord
+    
+    def getCoords(self, app):
+        cx, cy = self.coord
+        x0, x1 = cx - app.width * 0.05, cx + app.width * 0.05
+        y0, y1 = cy - app.height * 0.05, cy + app.height * 0.05
+        return x0, y0, x1, y1
+
+
+
 ##########################################
 # Grid class
 ##########################################
@@ -140,9 +155,6 @@ class Board():
 # Player class
 ##########################################
 
-
-
-
 class Player:
     def __init__(self, playerName, color):
         self.cards = []
@@ -215,7 +227,6 @@ class Player:
             curLocCol += self.ori[1]
             self.loc = curLocRow, curLocCol
         app.playerInfo[app.curPlayer]['loc'] = self.loc
-        # print(f'correct:{app.curPlayer} moved to {self.loc}')
     
 
     def changeMyTurn(self):
@@ -225,8 +236,6 @@ class Player:
     def buyProperty(self, app):
         curRow, curCol = app.row, app.col
         grid = app.myBoard.map[curRow][curCol]
-        # # modify the params of the grid
-        # grid.buying(self)
         # # modify the params of players
         self.myProperties.append(grid)
         self.money -= grid.priceToBuy
@@ -259,20 +268,13 @@ Now you have {self.money} dollars left.\
 
     def payToll(self, app):
         row, col = self.loc
-        print(f'now {self.playerName} has ${self.money}.')
         grid = app.myBoard.map[row][col]
-        print(f'row,col = {row,col}')
-        print(f'grid is {grid}')
-        coord = (app.row, app.col)
         # toll = app.boardDetailedInfo[coord]['toll']
         toll = grid.toll
-        print(f'toll = {toll}')
         self.money -= toll
         owner = grid.owner
         # owner = app.boardDetailedInfo[coord]['owner']
-        print(f'the owner is {owner}')
         owner.money += toll
-        print(f'after charging, now {self.playerName} has ${self.money}.')
 
 
         
@@ -295,6 +297,7 @@ def splashScreenMode_keyPressed(app, event):
     if event.key == 'y':
         app.mode = 'playerSettingMode'
 
+    
 # ##########################################
 # # Player setting Mode
 # ##########################################
@@ -457,7 +460,7 @@ def mapChooseMode_drawBoard(app, canvas):
 ##########################################
 
 def gameMode_redrawAll(app, canvas):
-    font = 'Baloo 28'
+    font = 'Baloo 24'
     canvas.create_text(app.width/2, 20, text='Game',
                        font=font, fill='black')
     x0Ins = app.width * 0.85
@@ -465,17 +468,19 @@ def gameMode_redrawAll(app, canvas):
     x1Ins = app.width * 0.95
     y1Ins = app.height * 0.3
     
-    canvas.create_oval(x0Ins, y0Ins, x1Ins, y1Ins, fill = 'white') # Instruction
-    canvas.create_text(app.width * 0.8, app.height * 0.28, 
-                       text = "Instruction", anchor = 'sw',
-                       fill = 'black', font = font)
+    canvas.create_oval(x0Ins, y0Ins, x1Ins, y1Ins,
+                       fill='#FFC125', outline='#FFC125') # Instruction
+    canvas.create_text(app.width * 0.83, app.height * 0.28, 
+                       text="Instruction", anchor='sw',
+                       fill='black', font=font)
 
     x0Card = app.width * 0.85
     y0Card = app.height * 0.35
     x1Card = app.width * 0.95
     y1Card = app.height * 0.45
-    canvas.create_oval(x0Card, y0Card, x1Card, y1Card, fill = 'white') # Special cards
-    canvas.create_text(app.width * 0.845, app.height * 0.43, text = "Cards",
+    canvas.create_oval(x0Card, y0Card, x1Card, y1Card, 
+                       fill='#FFC125', outline='#FFC125') # Special cards
+    canvas.create_text(app.width * 0.865, app.height * 0.43, text = "Cards",
                        anchor = 'sw',
                        fill = 'black', font=font)
     gameMode_drawBoard(app, canvas)
@@ -500,9 +505,10 @@ def gameMode_redrawAll(app, canvas):
         gameMode_askToPayToll(app, canvas)
     
     gameMode_drawMoneyAndPropertyCoin(app, canvas)
-    canvas.create_text(app.width/2, app.height*0.8, text=f"now it's {app.whoseTurn}'s Turn.\
-                                               Press 'r' to roll a dice.",
+    canvas.create_text(app.width/2, app.height*0.75, 
+                       text=f"Press 'r' to roll a dice.",
                        font=font, fill='black')
+    gameMode_drawDice(app, canvas)
 
 def gameMode_askBuy(app, canvas):
     text = 'Do you want to buy the land?'
@@ -573,24 +579,64 @@ def gameMode_drawMoneyAndPropertyCoin(app, canvas):
         cyP = cy 
         property = len(app.playerInfoKeysList[indexOfPlayer].myProperties)
         canvas.create_text(cxP, cyP, text=property, font=font)
+    
+    # playerName
+    for indexOfPlayer in range(len(app.playerInfoKeysList)):
+        font = 'Arial 15'
+        player = app.playerInfoKeysList[indexOfPlayer]
+        cx = app.width*(indexOfPlayer+1)/4 - app.width*0.18
+        cy = (app.height*0.25*0.4*0.5)*1.3
+        if player == app.curPlayer:
+            canvas.create_text(cx, cy, text=player, font=font, fill='blue')
+        else:
+            canvas.create_text(cx, cy, text=player, font=font)
 
 
+def gameMode_drawDice(app, canvas):
+    x0S, x1S = app.width*0.87 - app.width*0.03, app.width*0.87 + app.width*0.03
+    y0S, y1S = app.height*0.85 - app.width*0.03, app.height*0.85 + app.width*0.03
+    canvas.create_rectangle(x0S, y0S, x1S, y1S, outline='#FDC669', width=4.5)
+
+    p01 = x0S, y0S
+    p02 = x1S, y0S
+    p03 = x0S + app.width*0.0182, y0S - app.width*0.0182
+    p04 = x1S + app.width*0.0182, y0S - app.width*0.0182
+    canvas.create_polygon(p01, p02, p04, p03, 
+                          outline='#FDC669', fill='white', width=4.5)
+    
+    p11 = p04
+    p12 = p02
+    p13 = x1S, y1S
+    p14 = x1S + app.width*0.0182, y1S - + app.width*0.0182
+    canvas.create_polygon(p11, p12, p13, p14,
+                          outline='#FDC669', fill='white', width=4.5)
+    
 def gameMode_mousePressed(app, event):
     # instruction page and special cards mode
-    x0Ins = app.width * 0.85
-    y0Ins = app.height * 0.2
-    x1Ins = app.width * 0.95
-    y1Ins = app.height * 0.3
-    x0Card = app.width * 0.85
-    y0Card = app.height * 0.35
-    x1Card = app.width * 0.95
-    y1Card = app.height * 0.45
-    
+    # x0Ins = app.width * 0.85
+    # y0Ins = app.height * 0.2
+    # x1Ins = app.width * 0.95
+    # y1Ins = app.height * 0.3
+    cxIns = app.width * 0.9
+    cyIns = app.height * 0.25
+
+    # x0Card = app.width * 0.85
+    # y0Card = app.height * 0.35
+    # x1Card = app.width * 0.95
+    # y1Card = app.height * 0.45
+    cxCards = app.width * 0.9
+    cyCards = app.height * 0.4
+    instructionButton = Button('Inst', (cxIns, cyIns))
+    x0Ins, y0Ins, x1Ins, y1Ins = instructionButton.getCoords(app)
+
+    cardsButton = Button('Cards', (cxCards, cyCards))
+    x0Cards, y0Cards, x1Cards, y1Cards = cardsButton.getCoords(app)
+
     if ((app.openInstruction == False) and 
         (x0Ins < event.x < x1Ins) and 
         (y0Ins < event.y < y1Ins)):
         app.openInstruction = True
-    elif x0Card < event.x < x1Card and y0Card < event.y < y1Card:
+    elif x0Cards < event.x < x1Cards and y0Cards < event.y < y1Cards:
         app.mode = 'specialCardsMode'
 
     # click grids
@@ -612,7 +658,6 @@ def gameMode_timerFired(app):
         app.clickGrid = False
     updateDetailedInfoDict(app)
     if app.payToll:
-        print('pay toll in gameMode_timerFired')
         app.curPlayer.payToll(app)
         app.payToll = False
 
@@ -830,7 +875,7 @@ def isoToTwoD(isoX, isoY):
 def gameMode_drawInstruction(app, canvas):
     x0, y0 = app.width * 0.2, app.height * 0.2
     x1, y1 = app.width * 0.8, app.height * 0.8
-    canvas.create_rectangle(x0, y0, x1, y1, fill = '#FFEC8B')
+    canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
 
 ##########################################
 # Special cards Mode
