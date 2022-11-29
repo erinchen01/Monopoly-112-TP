@@ -488,14 +488,18 @@ def gameMode_redrawAll(app, canvas):
     
     # msg of rolling dice
     if type(app.dice) != str:
-        canvas.create_text(app.width/2, 45, text=f"You rolled {app.dice}.",
+        canvas.create_text(app.width*0.87 - app.width*0.015, 
+                           app.height*0.85 - app.width*0.1, 
+                           text=f"You rolled {app.dice}.",
                            font=font, fill='blue')
-    
+        
     if app.clickGrid == True:
         gameMode_drawGridInfo(app, canvas)
 
-    if app.openInstruction == True:
+    if app.instructionButton.enabled == True:
         gameMode_drawInstruction(app, canvas)
+    elif app.cardsButton.enabled == True:
+        gameMode_drawCards(app, canvas)
     
     if app.askBuy == True:
         gameMode_askBuy(app, canvas)
@@ -505,19 +509,16 @@ def gameMode_redrawAll(app, canvas):
         gameMode_askToPayToll(app, canvas)
     
     gameMode_drawMoneyAndPropertyCoin(app, canvas)
-    canvas.create_text(app.width/2, app.height*0.75, 
-                       text=f"Press 'r' to roll a dice.",
-                       font=font, fill='black')
     gameMode_drawDice(app, canvas)
 
 def gameMode_askBuy(app, canvas):
-    text = 'Do you want to buy the land?'
+    text = 'Do you want to buy the land? y/n'
     font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
 
 def gameMode_askUpgrade(app, canvas):
-    text = 'Do you want to upgrade the land?'
+    text = 'Do you want to upgrade the land? y/n'
     font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
@@ -611,33 +612,24 @@ def gameMode_drawDice(app, canvas):
     canvas.create_polygon(p11, p12, p13, p14,
                           outline='#FDC669', fill='white', width=4.5)
     
+    x0D, y0D, x1D, y1D = app.dieButton.getCoords(app)
+    canvas.create_oval(x0D, y0D, x1D, y1D, fill='#FFC125', 
+                            outline='#FFC125')
+    canvas.create_text((x0D+x1D)/2, (y0D+y1D)/2, text='Roll', font='Baloo 17')
+    
+    
 def gameMode_mousePressed(app, event):
     # instruction page and special cards mode
-    # x0Ins = app.width * 0.85
-    # y0Ins = app.height * 0.2
-    # x1Ins = app.width * 0.95
-    # y1Ins = app.height * 0.3
-    cxIns = app.width * 0.9
-    cyIns = app.height * 0.25
-
-    # x0Card = app.width * 0.85
-    # y0Card = app.height * 0.35
-    # x1Card = app.width * 0.95
-    # y1Card = app.height * 0.45
-    cxCards = app.width * 0.9
-    cyCards = app.height * 0.4
-    instructionButton = Button('Inst', (cxIns, cyIns))
-    x0Ins, y0Ins, x1Ins, y1Ins = instructionButton.getCoords(app)
-
-    cardsButton = Button('Cards', (cxCards, cyCards))
-    x0Cards, y0Cards, x1Cards, y1Cards = cardsButton.getCoords(app)
-
-    if ((app.openInstruction == False) and 
+    x0Ins, y0Ins, x1Ins, y1Ins = app.instructionButton.getCoords(app)
+    x0Cards, y0Cards, x1Cards, y1Cards = app.cardsButton.getCoords(app)
+    if ((app.instructionButton.enabled == False) and 
         (x0Ins < event.x < x1Ins) and 
         (y0Ins < event.y < y1Ins)):
-        app.openInstruction = True
-    elif x0Cards < event.x < x1Cards and y0Cards < event.y < y1Cards:
-        app.mode = 'specialCardsMode'
+        app.instructionButton.enabled = True
+    elif ((app.cardsButton.enabled == False) and
+          (x0Cards < event.x < x1Cards) and 
+          (y0Cards < event.y < y1Cards)):
+        app.cardsButton.enabled = True
 
     # click grids
     Isox, Isoy = event.x, event.y
@@ -652,6 +644,44 @@ def gameMode_mousePressed(app, event):
         app.gridInfo = app.boardDetailedInfo[(row, col)]
         app.gridClicked = (row, col)
 
+    x0R, y0R, x1R, y1R = app.dieButton.getCoords(app)
+    if ((not app.payToll) and
+        (not app.askToPayToll) and
+        (not app.askBuy) and 
+        (not app.askUpgrade) and 
+        (not app.instructionButton.enabled) and
+        (not app.cardsButton.enabled)):
+        if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
+            # after A rolled the dice, current turn changes
+            app.dice = app.curPlayer.playDice()
+            app.dieMsgTime = time.time()
+            app.curPlayer.move(app, app.dice)
+            
+            row, col = app.curPlayer.loc
+            app.row, app.col = row, col
+            
+            if (app.boardDetailedInfo[(row, col)] != None and
+                app.myBoard.map[row][col].name != 'prison'):
+                if app.boardDetailedInfo[(row, col)]['owner'] == None:
+                    app.askBuy = True
+                elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
+                    app.askUpgrade = True
+                elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
+                    app.startToAskForToll = time.time()
+                    app.askToPayToll = True
+                    app.payToll = True
+            
+            if ((not app.askBuy) and 
+                (not app.askUpgrade) and 
+                (not app.askToPayToll) and
+                (not app.payToll)):
+                app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+                app.curPlayer.myTurn = 'False'
+                nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+                app.curPlayer = nextPlayer
+                app.curPlayer.myTurn = 'True'
+                app.whoseTurn = nextPlayer
+
     
 def gameMode_timerFired(app):
     if (app.clickGrid == True) and (time.time() - app.clickTime > 2):
@@ -663,6 +693,9 @@ def gameMode_timerFired(app):
 
     if (app.askToPayToll) and (time.time() - app.startToAskForToll > 5):
         app.askToPayToll = False
+    
+    if ((type(app.dice) != str) and (time.time() - app.dieMsgTime > 4)):
+        app.dice = ''
     
     
     
@@ -704,44 +737,10 @@ def gameMode_drawPlayer(app, canvas):
         canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
 
 def gameMode_keyPressed(app, event):
-    if app.openInstruction == True and event.key == 'Escape':
-        app.openInstruction = False
-
-
-    if ((not app.payToll) and
-        (not app.askToPayToll) and
-        (not app.askBuy) and 
-        (not app.askUpgrade) and 
-        (not app.openInstruction)):
-        if event.key == 'r': # A player rolled the dice
-            # after A rolled the dice, current turn changes
-            app.dice = app.curPlayer.playDice()
-            app.curPlayer.move(app, app.dice)
-            
-            row, col = app.curPlayer.loc
-            app.row, app.col = row, col
-            
-            if (app.boardDetailedInfo[(row, col)] != None and
-                app.myBoard.map[row][col].name != 'prison'):
-                if app.boardDetailedInfo[(row, col)]['owner'] == None:
-                    app.askBuy = True
-                elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
-                    app.askUpgrade = True
-                elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
-                    app.startToAskForToll = time.time()
-                    app.askToPayToll = True
-                    app.payToll = True
-            
-            if ((not app.askBuy) and 
-                (not app.askUpgrade) and 
-                (not app.askToPayToll) and
-                (not app.payToll)):
-                app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-                app.curPlayer.myTurn = 'False'
-                nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-                app.curPlayer = nextPlayer
-                app.curPlayer.myTurn = 'True'
-                app.whoseTurn = nextPlayer
+    if app.instructionButton.enabled == True and event.key == 'Escape':
+        app.instructionButton.enabled = False
+    if app.cardsButton.enabled == True and event.key == 'Escape':
+        app.cardsButton.enabled = False
 
         
     if ((app.askBuy or app.askUpgrade) and 
@@ -773,10 +772,7 @@ def gameMode_keyPressed(app, event):
         app.curPlayer = nextPlayer
         app.curPlayer.myTurn = 'True'
         app.whoseTurn = nextPlayer
-        
-    
-
-       
+  
 
 def updateDetailedInfoDict(app):
     rows, cols = app.myBoard.getDims()
@@ -869,29 +865,25 @@ def isoToTwoD(isoX, isoY):
     return twoDx, twoDy
 
 ##################
-# Instruction Canvas
+# Instruction and Cards Canvas
 ##################
 
 def gameMode_drawInstruction(app, canvas):
     x0, y0 = app.width * 0.2, app.height * 0.2
     x1, y1 = app.width * 0.8, app.height * 0.8
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+    font = 'Baloo 20'
+    text = 'Instruction'
+    canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+    canvas.create_text((x0+x1)/2, (y0+y1)/2, text=text, font=font)
 
-##########################################
-# Special cards Mode
-##########################################
-
-def specialCardsMode_redrawAll(app, canvas):
-    font = 'Baloo 28'
-    canvas.create_text(app.width/2, 200, 
-                       text='Here are all the special cards you have!', 
-                       font=font, fill='black')
-    canvas.create_text(app.width/2, 350, text='Press r to return to the game!',
-                       font=font, fill='black')
-
-def specialCardsMode_keyPressed(app, event):
-    if event.key == 'r':
-        app.mode = 'gameMode'
+def gameMode_drawCards(app, canvas):
+    x0, y0 = app.width * 0.2, app.height * 0.2
+    x1, y1 = app.width * 0.8, app.height * 0.8
+    font = 'Baloo 20'
+    text = 'Cards you have'
+    canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+    canvas.create_text((x0+x1)/2, (y0+y1)/2, text=text, font=font)
 
 
 ##########################################
@@ -914,12 +906,26 @@ def appStarted(app):
     app.gridInfo = None
     app.clickGrid = False # keep track of whether the player clicked grids
     app.wantToReturn = False
-    app.openInstruction = False
+    # app.openInstruction = False
+    
 
     app.askBuy = False
     app.askUpgrade = False
     app.askToPayToll = False
     app.payToll = False
+
+    cxIns = app.width * 0.9
+    cyIns = app.height * 0.25
+    app.instructionButton = Button('Inst', (cxIns, cyIns))
+
+    cxCards = app.width * 0.9
+    cyCards = app.height * 0.4
+    app.cardsButton = Button('Cards', (cxCards, cyCards))
+
+    cxDieButton = app.width*0.87 - app.width*0.03
+    cyDieButton = app.height*0.85 - app.width*0.03
+    app.dieButton = Button('Throw a die', (cxDieButton, cyDieButton))
+
 
 
 def timerFired(app):
