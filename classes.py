@@ -144,7 +144,7 @@ class Board():
 
 
 class Player:
-    def __init__(self, app, playerName):
+    def __init__(self, playerName, color):
         self.cards = []
         self.myTurn = False
         self.myProperties = []
@@ -153,6 +153,7 @@ class Player:
         # self.color = random.choice(colors)
         # colors.remove(self.color)
         self.playerName = playerName
+        self.color = color
     
     
     def __repr__(self):
@@ -256,17 +257,37 @@ class Player:
 Now you have {self.money} dollars left.\
         '''
 
+    def payToll(self, app):
+        row, col = self.loc
+        print(f'now {self.playerName} has ${self.money}.')
+        grid = app.myBoard.map[row][col]
+        print(f'row,col = {row,col}')
+        print(f'grid is {grid}')
+        coord = (app.row, app.col)
+        # toll = app.boardDetailedInfo[coord]['toll']
+        toll = grid.toll
+        print(f'toll = {toll}')
+        self.money -= toll
+        owner = grid.owner
+        # owner = app.boardDetailedInfo[coord]['owner']
+        print(f'the owner is {owner}')
+        owner.money += toll
+        print(f'after charging, now {self.playerName} has ${self.money}.')
+
+
+        
+
 
 ##########################################
 # Splash Screen Mode
 ##########################################
 
 def splashScreenMode_redrawAll(app, canvas):
-    font = 'Times 28 bold italic'
-    canvas.create_text(app.width/2, app.height/3, text='Monopoly',
+    font = 'Baloo 28'
+    canvas.create_text(app.width/2, app.height/3, text='Monopoly!',
                        font=font, fill='black')
     canvas.create_text(app.width/2, app.height/2.5, 
-                       text='Press y to start!',
+                       text='Press y to start a new game',
                        font=font, fill='black')
 
 
@@ -279,7 +300,7 @@ def splashScreenMode_keyPressed(app, event):
 # ##########################################
 
 def playerSettingMode_redrawAll(app, canvas):
-    font = font = 'Times 28 bold italic'
+    font = font = 'Baloo 28'
     
     canvas.create_text(app.width/2, app.height/8, 
                        text=app.message,
@@ -299,7 +320,7 @@ def playerSettingMode_mousePressed(app, event):
 def playerSettingMode_keyPressed(app, event):
     if event.key == 'y':
         if app.playerNum < 2:
-            app.message = "Please add at least two players in total."
+            app.message = "Please add at least\n      two players."
         else:
             app.mode = 'mapChooseMode'
     else:
@@ -314,7 +335,8 @@ def playerSettingMode_keyPressed(app, event):
                     app.playerNameList.append(name)
             if app.playerNum == 4:
                     app.message = '''
-                        Has reached the maximum of players. Let's start the game!
+                        Has reached the maximum of players. 
+                        Let's start the game!
                     '''
 
     
@@ -324,7 +346,7 @@ def playerSettingMode_keyPressed(app, event):
 # ##########################################
 
 def mapChooseMode_redrawAll(app, canvas):
-    font = 'Times 28 bold italic'
+    font = 'Baloo 28'
     canvas.create_text(app.width/2, app.height/8, 
                     text="Please press left and right key to choose the map",
                     font=font, fill='black')
@@ -354,7 +376,9 @@ def mapChooseMode_keyPressed(app, event):
     if event.key == 'y':
         # set players
         for playerName in app.playerNameList:
-            player = Player(app, playerName)
+            colors = ['blue', 'red', 'yellow', 'green']
+            color = random.choice(colors)
+            player = Player(playerName, color)
             app.playerInfo[player] = dict()
 
             loc = app.myBoard.getRandomPlace() #returns a tuple
@@ -362,6 +386,7 @@ def mapChooseMode_keyPressed(app, event):
             
             app.playerInfo[player]["loc"] = player.loc
             app.playerInfo[player]["myTurn"] = player.myTurn
+            app.playerInfo[player]["color"] = player.color
             ori = player.checkOri(app)
             player.ori = ori
         app.playerInfoKeysList = list(app.playerInfo)
@@ -395,7 +420,7 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
                     gridName = 'prison'
                     app.boardDetailedInfo[coord] = gridName
                     app.myBoard.map[row][col] = Grid(gridName, 0)
-                elif 0 < index % 7 % 4 <= 3:
+                elif 0 < index % 7 % 4 <= 4:
                     gridName = None
                     gridPriceToBuy = 0
                     app.boardDetailedInfo[coord] = None
@@ -432,7 +457,7 @@ def mapChooseMode_drawBoard(app, canvas):
 ##########################################
 
 def gameMode_redrawAll(app, canvas):
-    font = 'Times 28 bold italic'
+    font = 'Baloo 28'
     canvas.create_text(app.width/2, 20, text='Game',
                        font=font, fill='black')
     x0Ins = app.width * 0.85
@@ -452,7 +477,7 @@ def gameMode_redrawAll(app, canvas):
     canvas.create_oval(x0Card, y0Card, x1Card, y1Card, fill = 'white') # Special cards
     canvas.create_text(app.width * 0.845, app.height * 0.43, text = "Cards",
                        anchor = 'sw',
-                       fill = 'black', font = font)
+                       fill = 'black', font=font)
     gameMode_drawBoard(app, canvas)
     gameMode_drawPlayer(app, canvas)
     
@@ -474,28 +499,80 @@ def gameMode_redrawAll(app, canvas):
     elif app.askToPayToll == True:
         gameMode_askToPayToll(app, canvas)
     
-    canvas.create_text(app.width/2, 35, text=f"now it's {app.whoseTurn}'s Turn.\
+    gameMode_drawMoneyAndPropertyCoin(app, canvas)
+    canvas.create_text(app.width/2, app.height*0.8, text=f"now it's {app.whoseTurn}'s Turn.\
                                                Press 'r' to roll a dice.",
                        font=font, fill='black')
-    print(f"In reDrawAll, it's {app.whoseTurn}'s turn.")
 
 def gameMode_askBuy(app, canvas):
     text = 'Do you want to buy the land?'
-    font = 'Times 11'
+    font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
 
 def gameMode_askUpgrade(app, canvas):
     text = 'Do you want to upgrade the land?'
-    font = 'Times 11'
+    font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
 def gameMode_askToPayToll(app, canvas):
-    text = 'Bad luck! You have to pay toll'
-    font = 'Times 11'
+    row, col = app.curPlayer.loc
+    grid = app.myBoard.map[row][col]
+    pOwner = grid.owner
+    text = f'''
+Bad luck:(
+You visited {pOwner}'s property - {grid.name} and have to 
+pay a ${grid.toll} toll.
+    '''
+    font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
+    tollText = f'-         {grid.toll}'
+    cx = app.width*0.64
+    cy = app.height*0.283
+    rCoin = app.width * 0.009
+    x0, x1 = cx - rCoin, cx + rCoin
+    y0, y1 = cy - rCoin, cy + rCoin
+    canvas.create_oval(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+    canvas.create_text(cx, cy, text='$', fill='#8B5742', font=font)
+    canvas.create_text(app.width*0.66, cy, 
+                       text=tollText, font='Arial 13 bold', fill='#8B5742')
 
+def gameMode_drawMoneyAndPropertyCoin(app, canvas):
+    
+    # money coin
+    for indexOfPlayer in range(len(app.playerInfoKeysList)):
+        text = '$'
+        font = 'Arial 10'
+        cx = app.width*(indexOfPlayer+1)/4 - app.width/4*0.5
+        cy = app.height*0.25*0.4*0.5
+        rCoin = app.width * 0.009
+        x0, x1 = cx - rCoin, cx + rCoin
+        y0, y1 = cy - rCoin, cy + rCoin
+        canvas.create_oval(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+        canvas.create_text(cx, cy, text=text, fill='#8B5742', font=font)
+
+        money = app.playerInfoKeysList[indexOfPlayer].money
+        cxM = cx + rCoin * 4
+        cyM = cy
+        canvas.create_text(cxM, cyM, text=money, font=font)
+    
+    # property coin
+    for indexOfPlayer in range(len(app.playerInfoKeysList)):
+        text = 'P'
+        font = 'Arial 10'
+        cx = app.width*(indexOfPlayer+1)/4 - app.width/4*0.5
+        cy = (app.height*0.25*0.4*0.5)*1.8
+        rCoin = app.width * 0.009
+        x0, x1 = cx - rCoin, cx + rCoin
+        y0, y1 = cy - rCoin, cy + rCoin
+        canvas.create_oval(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+        canvas.create_text(cx, cy, text=text, fill='#8B5742', font=font)
+
+        cxP = cx + rCoin * 4
+        cyP = cy 
+        property = len(app.playerInfoKeysList[indexOfPlayer].myProperties)
+        canvas.create_text(cxP, cyP, text=property, font=font)
 
 
 def gameMode_mousePressed(app, event):
@@ -534,18 +611,28 @@ def gameMode_timerFired(app):
     if (app.clickGrid == True) and (time.time() - app.clickTime > 2):
         app.clickGrid = False
     updateDetailedInfoDict(app)
+    if app.payToll:
+        print('pay toll in gameMode_timerFired')
+        app.curPlayer.payToll(app)
+        app.payToll = False
+
+    if (app.askToPayToll) and (time.time() - app.startToAskForToll > 5):
+        app.askToPayToll = False
+    
+    
+    
         
         
 def gameMode_drawGridInfo(app, canvas):
     row, col = app.gridClicked
     gridcx, gridcy = app.gridWidth * col + app.width * 0.4, app.gridHeight * row
     gridIsocx, gridIsocy = twoDToIso(gridcx, gridcy)
-    x0, y0 = gridIsocx - app.width * 0.07, gridIsocy - app.height * 0.12
+    x0, y0 = gridIsocx - app.width * 0.07, gridIsocy - app.height * 0.14
     x1, y1 = gridIsocx + app.width * 0.07, gridIsocy - app.height * 0.02
     canvas.create_rectangle(x0, y0, x1, y1, fill = '#FFEC8B')
 
 
-    font = 'Times 11 bold'
+    font = 'Arial 9'
     text = ''
     for key in app.gridInfo:
         if key == 'property name':
@@ -569,49 +656,51 @@ def gameMode_drawPlayer(app, canvas):
         y0 = isoY - playerRadius
         x1 = isoX + playerRadius
         y1 = isoY + playerRadius
-        canvas.create_oval(x0, y0, x1, y1, fill='black')
-
+        canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
 
 def gameMode_keyPressed(app, event):
-    
+    if app.openInstruction == True and event.key == 'Escape':
+        app.openInstruction = False
 
-    if event.key == 'r': # A player rolled the dice
-        # after A rolled the dice, current turn changes
-        app.dice = app.curPlayer.playDice()
-        app.curPlayer.move(app, app.dice)
 
-        #####
-        row, col = app.curPlayer.loc
-        app.row, app.col = row, col
+    if ((not app.payToll) and
+        (not app.askToPayToll) and
+        (not app.askBuy) and 
+        (not app.askUpgrade) and 
+        (not app.openInstruction)):
+        if event.key == 'r': # A player rolled the dice
+            # after A rolled the dice, current turn changes
+            app.dice = app.curPlayer.playDice()
+            app.curPlayer.move(app, app.dice)
+            
+            row, col = app.curPlayer.loc
+            app.row, app.col = row, col
+            
+            if (app.boardDetailedInfo[(row, col)] != None and
+                app.myBoard.map[row][col].name != 'prison'):
+                if app.boardDetailedInfo[(row, col)]['owner'] == None:
+                    app.askBuy = True
+                elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
+                    app.askUpgrade = True
+                elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
+                    app.startToAskForToll = time.time()
+                    app.askToPayToll = True
+                    app.payToll = True
+            
+            if ((not app.askBuy) and 
+                (not app.askUpgrade) and 
+                (not app.askToPayToll) and
+                (not app.payToll)):
+                app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+                app.curPlayer.myTurn = 'False'
+                nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+                app.curPlayer = nextPlayer
+                app.curPlayer.myTurn = 'True'
+                app.whoseTurn = nextPlayer
+
         
-
-        #########
-        if (app.boardDetailedInfo[(row, col)] != None and
-            app.myBoard.map[row][col].name != 'prison'):
-            if app.boardDetailedInfo[(row, col)]['owner'] == None:
-                app.askBuy = True
-            elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
-                app.askUpgrade = True
-            elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
-                app.askToPayToll = True
-
-        if app.openInstruction == True and event.key == 'Escape':
-            app.openInstruction = False
-        ######
-
-        
-        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-        print(f'askBuy: {app.askBuy}, askUpgrade: {app.askUpgrade}')
-        if not app.askBuy and not app.askUpgrade:
-            app.curPlayer.myTurn = 'False'
-            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-            app.curPlayer = nextPlayer
-            app.curPlayer.myTurn = 'True'
-            app.whoseTurn = nextPlayer
-            print(f"{app.whoseTurn}'s turn")
-
-        
-    if event.key == 'y' or 'n':
+    if ((app.askBuy or app.askUpgrade) and 
+        (event.key == 'y' or event.key == 'n')):
         row, col = app.row, app.col
         if event.key == 'y':
             if ((app.myBoard.map[row][col] != 0) and 
@@ -619,8 +708,6 @@ def gameMode_keyPressed(app, event):
                 (app.myBoard.map[row][col].name != None) and
                 (app.myBoard.map[row][col].name != 'prison')): #eligible properties
                 # buy 
-                print('this is an eligible property')
-                print(f'whether to ask buy: {app.askBuy}')
                 if app.askBuy:
                     # curRow, curCol = app.playerInfo[app.curPlayer]['loc']
                     # print('want to buy')
@@ -628,8 +715,7 @@ def gameMode_keyPressed(app, event):
                     app.myBoard.map[row][col].buying(app.curPlayer)
                     app.askBuy = False
                 elif app.askUpgrade:
-                    app.curPlayer.upgradeProperty()
-                    print('want to upgrade')
+                    app.curPlayer.upgradeProperty(app)
                     app.askUpgrade = False
                     # grid upgrade()
         elif event.key == 'n':
@@ -642,6 +728,8 @@ def gameMode_keyPressed(app, event):
         app.curPlayer = nextPlayer
         app.curPlayer.myTurn = 'True'
         app.whoseTurn = nextPlayer
+        
+    
 
        
 
@@ -749,7 +837,7 @@ def gameMode_drawInstruction(app, canvas):
 ##########################################
 
 def specialCardsMode_redrawAll(app, canvas):
-    font = 'Times 28 bold italic'
+    font = 'Baloo 28'
     canvas.create_text(app.width/2, 200, 
                        text='Here are all the special cards you have!', 
                        font=font, fill='black')
@@ -786,6 +874,7 @@ def appStarted(app):
     app.askBuy = False
     app.askUpgrade = False
     app.askToPayToll = False
+    app.payToll = False
 
 
 def timerFired(app):
