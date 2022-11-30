@@ -43,15 +43,17 @@ class Grid:
         self.owner = owner
         self.level = 1
         self.chargeTolls = True
-        self.toll = int(4 * 0.1 * self.priceToBuy)
+        self.toll = int(0.35 * self.priceToBuy)
+        self.priceToSell = int(self.priceToBuy * 0.7)
 
     def upgrading(self):
         self.level += 1
-        self.toll += int(4 * 0.1 * self.priceToBuy)
+        self.toll += int(0.35 * self.priceToBuy)
+        self.priceToSell == int(self.priceToBuy * 0.7) * self.level
 
     def selling(self):
         self.owner = None
-        self.toll -= int(4 * 0.1 * self.priceToBuy)
+        self.toll = 0
 
     def __repr__(self): ####need to improve
         return f'{self.name}'
@@ -66,7 +68,8 @@ everyone loses $2000.\
 eventsDetails['Go to Jail'] = dict()
 eventsDetails['Go to Jail']['description'] = '''
 \nYou were arrested on 
-suspicion of drunk driving.\
+suspicion of drunk driving
+for three rounds.\
 '''
 eventsDetails['Get out of Jail Free'] = dict()
 eventsDetails['Get out of Jail Free']['description'] = '''
@@ -493,6 +496,7 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
                     gridName = 'jail'
                     app.boardDetailedInfo[coord] = gridName
                     app.myBoard.map[row][col] = Grid(gridName, 0)
+                    app.jailLoc = coord
                 elif 0 < index % 8 % 4 <= 4:
                     if index % 8 % 4 == 1:
                         gridName = random.choice(events)
@@ -519,6 +523,7 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
                         app.boardDetailedInfo[coord]['price to buy'] = (
                                                                 gridPriceToBuy)
                         app.boardDetailedInfo[coord]['owner'] = 'No Owner'
+                        app.boardDetailedInfo[coord]['level'] = grid.level
                         if grid.owner != None:
                             app.boardDetailedInfo[coord]['owner'] = grid.owner
                             app.boardDetailedInfo[coord]['cost to upgrade'] = (
@@ -541,29 +546,7 @@ def mapChooseMode_drawBoard(app, canvas):
 
 def gameMode_redrawAll(app, canvas):
     
-    font = 'Baloo 24'
-    canvas.create_text(app.width/2, 20, text='Game',
-                       font=font, fill='black')
-    x0Ins = app.width * 0.85
-    y0Ins = app.height * 0.2
-    x1Ins = app.width * 0.95
-    y1Ins = app.height * 0.3
-    
-    canvas.create_oval(x0Ins, y0Ins, x1Ins, y1Ins,
-                       fill='#FFC125', outline='#FFC125') # Instruction
-    canvas.create_text(app.width * 0.83, app.height * 0.28, 
-                       text="Instruction", anchor='sw',
-                       fill='black', font=font)
-
-    x0Card = app.width * 0.85
-    y0Card = app.height * 0.35
-    x1Card = app.width * 0.95
-    y1Card = app.height * 0.45
-    canvas.create_oval(x0Card, y0Card, x1Card, y1Card, 
-                       fill='#FFC125', outline='#FFC125') # Special cards
-    canvas.create_text(app.width * 0.865, app.height * 0.43, text = "Cards",
-                       anchor = 'sw',
-                       fill = 'black', font=font)
+    gameMode_drawButtons(app, canvas)
     gameMode_drawBoard(app, canvas)
     gameMode_drawPlayer(app, canvas)
     
@@ -572,7 +555,7 @@ def gameMode_redrawAll(app, canvas):
         canvas.create_text(app.width*0.87 - app.width*0.015, 
                            app.height*0.85 - app.width*0.1, 
                            text=f"{app.lastPlayer} rolled {app.dice}.",
-                           font=font, fill='blue')
+                           font='Baloo 24', fill='blue')
         
     if app.clickGrid:
         gameMode_drawGridInfo(app, canvas)
@@ -593,6 +576,49 @@ def gameMode_redrawAll(app, canvas):
         gameMode_drawInstruction(app, canvas)
     elif app.cardsButton.enabled:
         gameMode_drawCards(app, canvas)
+    elif app.propertiesButton.enabled:
+        gameMode_drawProperties(app, canvas)
+    
+    if app.bankrupcy:
+        gameMode_displayBankrupcyMsg(app, canvas)
+
+
+
+
+def gameMode_displayBankrupcyMsg(app, canvas):
+    text = f'{app.bankrupt} is declared bankrupt.'
+    canvas.create_text(app.width*0.5, app.height*0.5*0.9, 
+                       font='baloo 15', text=text)
+
+
+def gameMode_drawButtons(app, canvas):
+    font = 'Baloo 24'
+    canvas.create_text(app.width/2, 20, text='Game',
+                       font=font, fill='black')
+    x0Ins, x1Ins = app.width * 0.85, app.width * 0.95
+    y0Ins, y1Ins = app.height * 0.2, app.height * 0.3    
+    canvas.create_oval(x0Ins, y0Ins, x1Ins, y1Ins,
+                       fill='#FFC125', outline='#FFC125') # Instruction
+    canvas.create_text(app.width * 0.83, app.height * 0.28, 
+                       text="Instruction", anchor='sw',
+                       fill='black', font=font)
+
+    x0Card, x1Card = x0Ins, x1Ins
+    y0Card, y1Card = app.height * 0.35, app.height * 0.45
+    canvas.create_oval(x0Card, y0Card, x1Card, y1Card, 
+                       fill='#FFC125', outline='#FFC125') # Special cards
+    canvas.create_text(app.width * 0.865, app.height * 0.43, text = "Cards",
+                       anchor = 'sw',
+                       fill = 'black', font=font)
+    
+    x0P, x1P = x0Ins, x1Ins
+    y0P, y1P = app.height * 0.5, app.height * 0.6
+    canvas.create_oval(x0P, y0P, x1P, y1P, 
+                       fill='#FFC125', outline='#FFC125') # Special cards
+    canvas.create_text(app.width * 0.865, app.height * 0.58, text = "Properties",
+                       anchor = 'sw',
+                       fill = 'black', font=font)
+    
 
 
 def gameMode_askBuy(app, canvas):
@@ -722,14 +748,20 @@ def gameMode_mousePressed(app, event):
     # instruction page and special cards mode
     x0Ins, y0Ins, x1Ins, y1Ins = app.instructionButton.getCoords(app)
     x0Cards, y0Cards, x1Cards, y1Cards = app.cardsButton.getCoords(app)
-    if ((app.instructionButton.enabled == False) and 
+    x0P, y0P, x1P, y1P = app.propertiesButton.getCoords(app)
+    if ((not app.instructionButton.enabled) and 
         (x0Ins < event.x < x1Ins) and 
         (y0Ins < event.y < y1Ins)):
         app.instructionButton.enabled = True
-    elif ((app.cardsButton.enabled == False) and
+    elif ((not app.cardsButton.enabled) and
           (x0Cards < event.x < x1Cards) and 
           (y0Cards < event.y < y1Cards)):
         app.cardsButton.enabled = True
+    elif ((not app.propertiesButton.enabled) and
+          (x0P < event.x < x1P) and
+          (y0P < event.y < y1P)):
+        app.propertiesButton.enabled = True
+
 
     # click grids
     Isox, Isoy = event.x, event.y
@@ -744,17 +776,29 @@ def gameMode_mousePressed(app, event):
         app.gridInfo = app.boardDetailedInfo[(row, col)]
         app.gridClicked = (row, col)
     
+    # roll a die
     x0R, y0R, x1R, y1R = app.dieButton.getCoords(app)
     if ((not app.payToll) and
         (not app.askBuy) and 
         (not app.askUpgrade) and 
         (not app.instructionButton.enabled) and
-        (not app.cardsButton.enabled)):
+        (not app.cardsButton.enabled) and 
+        (not app.propertiesButton.enabled)):
         if app.displayChanceCards or app.askToPayToll:
             app.displayChanceCards = False
             app.askToPayToll = False
+        if ((app.curPlayer in app.criminals) and 
+            (app.criminals[app.curPlayer] > 0)):
+            app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+            app.curPlayer.myTurn = 'False'
+            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+            app.curPlayer = nextPlayer
+            app.curPlayer.myTurn = 'True'
+            app.whoseTurn = nextPlayer
         if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
             # after A rolled the dice, current turn changes
+            for criminal in app.criminals:
+                app.criminals[criminal] -= 1
             app.dice = app.curPlayer.playDice()
             app.dieMsgTime = time.time()
             app.curPlayer.move(app, app.dice)
@@ -772,14 +816,13 @@ def gameMode_mousePressed(app, event):
                 elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
                     app.startToAskForToll = time.time()
                     app.askToPayToll = True
-                    app.payToll = True
-                    
-                    
+                    app.payToll = True  
             elif (app.boardDetailedInfo[(row, col)] != None and
                   app.myBoard.map[row][col].name == 'chance'):
                   app.displayCCtime = time.time()
                   app.displayChanceCards = True
                   app.playChanceCards = True
+                  
                   
             app.lastPlayer = app.curPlayer
             
@@ -814,12 +857,46 @@ def gameMode_timerFired(app):
     if (app.displayChanceCards) and (time.time() - app.displayCCtime > 3.2):
         app.displayChanceCards = False
     
+    if app.bankrupcy == True and (time.time() - app.showBankrupcyMsg > 2):
+        app.bankrupcy = False
+        
+    # will crash
+    if app.curPlayer.money <= 0:
+        app.bankrupcy = True
+        app.showBankrupcyMsg = time.time()
+        app.bankrupt = f'{app.curPlayer.playerName}'
+        print(app.playerInfo)
+        del app.playerInfo[app.curPlayer]
+
+            
+    
         
 def gameMode_playChanceCards(app): #need to improve
     row, col = app.row, app.col
-    pass
+    coord = row, col
+    event = app.boardDetailedInfo[coord]['event name']
+    if event == 'Market Crash':
+        for eachPlayer in app.playerInfo:
+            eachPlayer.money -= 2000
+    elif event == 'Go to Jail':
+        app.lastPlayer.loc = app.jailLoc
+        app.playerInfo[app.lastPlayer]['loc'] = app.jailLoc
+        app.criminals[app.lastPlayer] = 3 * (len(app.playerInfoKeysList)-1)
+    elif event == 'Get out of Jail Free':
+        app.lastPlayer.cards += ['Get out of Jail Free']
+    elif event == 'Chairman':
+        restPlayers = copy.copy(app.playerInfoKeysList)
+        restPlayers.remove(app.lastPlayer)
+        for eachPlayer in restPlayers:
+            eachPlayer.money += 500
+            app.lastPlayer.money -= 500
+    elif event == 'competition':
+        app.lastPlayer.money += 900
+    elif event == 'poor tax':
+        app.lastPlayer.money -= 120
+    elif event == 'parking fee':
+        app.lastPlayer.money -= 500
 
-        
         
 def gameMode_drawGridInfo(app, canvas):
     row, col = app.gridClicked
@@ -846,6 +923,12 @@ def gameMode_drawGridInfo(app, canvas):
             if key == 'property name':
                 text += f'{key} :\n{app.gridInfo[key]}\n'
             else:
+                if app.myBoard.map[row][col].owner == None:
+                    if key == 'cost to upgrade':
+                        continue
+                elif app.myBoard.map[row][col].owner != None:
+                    if key == 'price to buy':
+                        continue
                 text += f'{key} : {app.gridInfo[key]}\n'
         canvas.create_text(gridIsocx, (y1+y0)/2, 
                             text=text, font=font, fill='black')
@@ -867,10 +950,11 @@ def gameMode_drawPlayer(app, canvas):
         canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
 
 def gameMode_keyPressed(app, event):
-    if ((app.instructionButton.enabled or app.cardsButton.enabled) and 
-        event.key == 'Escape'):
+    if ((app.instructionButton.enabled or app.cardsButton.enabled or
+         app.propertiesButton.enabled) and event.key == 'Escape'):
         app.instructionButton.enabled = False
         app.cardsButton.enabled = False
+        app.propertiesButton.enabled = False
 
     if ((app.askBuy or app.askUpgrade or app.askToPayToll) and 
         (type(app.dice) != str)):
@@ -894,7 +978,8 @@ def gameMode_keyPressed(app, event):
                 elif app.askUpgrade:
                     app.curPlayer.upgradeProperty(app)
                     app.askUpgrade = False
-                    # grid upgrade()
+                    app.myBoard.map[row][col].upgrading()
+                    
         elif event.key == 'n':
             app.askBuy = False
             app.askUpgrade = False
@@ -922,6 +1007,7 @@ def updateDetailedInfoDict(app):
                 app.boardDetailedInfo[coord]['cost to upgrade'] = (
                 grid.priceToUpgrade)
                 app.boardDetailedInfo[coord]['toll'] = grid.toll
+                app.boardDetailedInfo[coord]['level'] = grid.level
 
 
 ###########
@@ -961,8 +1047,8 @@ def placeGrid(app, canvas, cx, cy):
     coordCenterS = getGridCenterSquareCoord(app, cx, cy)
     coordLeftSide = getGridLeftSideCoord(app, cx, cy)
     coordRightSide = getGridRightSideCoord(app, cx, cy)
-    canvas.create_polygon(coordLeftSide, fill='#50961b', outline='#50961b')
-    canvas.create_polygon(coordRightSide, fill='#316e03', outline='#316e03')
+    canvas.create_polygon(coordLeftSide, fill='#50961b', outline='#438710')
+    canvas.create_polygon(coordRightSide, fill='#316e03', outline='#214a01')
     canvas.create_polygon(coordCenterS, fill='#64b02a', outline='#50941c')
 
 def placeOccupiedGrid(app, canvas, cx, cy, row, col):
@@ -998,8 +1084,8 @@ def placeNoneGrid(app, canvas, cx, cy):
     coordCenterS = getGridCenterSquareCoord(app, cx, cy)
     coordLeftSide = getGridLeftSideCoord(app, cx, cy)
     coordRightSide = getGridRightSideCoord(app, cx, cy)
-    canvas.create_polygon(coordLeftSide, fill='#7d4d3b', outline='#7d4d3b')
-    canvas.create_polygon(coordRightSide, fill='#663f30', outline='#5e3a2c')
+    canvas.create_polygon(coordLeftSide, fill='#7d4d3b', outline='#61392b')
+    canvas.create_polygon(coordRightSide, fill='#663f30', outline='#4f2f22')
     canvas.create_polygon(coordCenterS, fill='#8B5742', outline='#5e3a2c')
 
 def placeChanceCards(app, canvas, cx, cy):
@@ -1062,17 +1148,72 @@ def gameMode_drawInstruction(app, canvas):
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
     font = 'Baloo 20'
     text = 'Instruction'
+    command = "press 'esc' to return"
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    canvas.create_text((x0+x1)/2, (y0+y1)/2, text=text, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.25, text=text, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
+
+    text1 = 'As you walk on the map, you will see grids of various colors.'
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.36, text=text1, font='Baloo 17')
+    cx0, cy0 = (x0+x1)*0.44, (y0+y1)*0.23
+    cx1, cy1 = (x0+x1)*0.48, (y0+y1)*0.23
+    cx2, cy2 = (x0+x1)*0.52, (y0+y1)*0.23
+    cx3, cy3 = (x0+x1)*0.56, (y0+y1)*0.23
+    
+    font2 = 'Times 14'
+    placeGrid(app, canvas, cx0, cy0)
+    textG = '''\
+Properties. Click them on the map to see detials.\
+'''
+    canvas.create_text((x0+x1)*0.5, (y0+y1)*0.42, text=textG, font=font2)
+    placeJailGrid(app, canvas, cx1, cy1)
+    textY = "Jail. People in jail are forbidden to walk."
+    canvas.create_text((x0+x1)*0.53, (y0+y1)*0.457, text=textY, font=font2)
+    placeNoneGrid(app, canvas, cx2, cy2)
+    textBrown = 'Land. You cannot purchase them.'
+    canvas.create_text((x0+x1)*0.53, (y0+y1)*0.49, text=textBrown, font=font2)
+    placeChanceCards(app, canvas, cx3, cy3)
+    textBlue = 'Chance cards. You may lose or get.'
+    canvas.create_text((x0+x1)*0.58, (y0+y1)*0.525, text=textBlue, font=font2)
+    font3='Baloo 15'
+    text2 = '''The bar at the top of the page displays the total amount of money
+and the number of properties owned by each player.
+'''
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.635, text=text2, font=font3)
+
+    text3 = '''If your name is in red in the bar, it's your turn to throw a dice
+and move. Press y/n to make decisions.
+'''
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.72, text=text3, font=font3)
+
 
 def gameMode_drawCards(app, canvas):
     x0, y0 = app.width * 0.2, app.height * 0.2
     x1, y1 = app.width * 0.8, app.height * 0.8
     font = 'Baloo 20'
-    text = 'Cards you have'
+    title = 'Cards you have'
+    cards = ''
+    for eachCard in app.curPlayer.cards:
+        cards += eachCard
+    command = "press 'esc' to return"
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    canvas.create_text((x0+x1)/2, (y0+y1)/2, text=text, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=cards, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
+def gameMode_drawProperties(app, canvas):
+    x0, y0 = app.width * 0.2, app.height * 0.2
+    x1, y1 = app.width * 0.8, app.height * 0.8
+    font = 'Baloo 20'
+    title = 'Properties you have'
+    properties = ''
+    for eachP in app.curPlayer.myProperties:
+        properties += f'{eachP}   '
+    command = "press 'esc' to return"
+    canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=properties, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
 ##########################################
 # Main App
@@ -1082,7 +1223,7 @@ def appStarted(app):
     app.mode = 'splashScreenMode'
     app.gridHeight = app.height*0.038
     app.gridWidth = app.height*0.038
-    app.gridThickness = app.height*0.028
+    app.gridThickness = app.height*0.018
     app.myBoard = Board(board1)
     app.index = 1
     app.playerNum = 0
@@ -1111,13 +1252,20 @@ def appStarted(app):
     cyCards = app.height * 0.4
     app.cardsButton = Button('Cards', (cxCards, cyCards))
 
+    cxPro = app.width * 0.9
+    cyPro = app.height * 0.55
+    app.propertiesButton = Button('Properties', (cxPro, cyPro))
+
     cxDieButton = app.width*0.87 - app.width*0.03
     cyDieButton = app.height*0.85 - app.width*0.03
     app.dieButton = Button('Throw a die', (cxDieButton, cyDieButton))
 
     app.displayChanceCards = False
     app.playChanceCards = False
-    # app.eventsDetails = eventsDetails
+
+    app.criminals = dict()
+    app.bankrupcy = False
+    app.backrupt = None
 
 
 
