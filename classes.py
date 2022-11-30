@@ -4,16 +4,17 @@ import random, tkinter, time, decimal
 
 
 class Button:
-    def __init__(self, buttonName, coord):
+    def __init__(self, buttonName, centerpoints):
         self.name = buttonName
         self.enabled = False
-        self.coord = coord
+        self.coord = centerpoints
     
     def getCoords(self, app):
         cx, cy = self.coord
         x0, x1 = cx - app.width * 0.05, cx + app.width * 0.05
         y0, y1 = cy - app.height * 0.05, cy + app.height * 0.05
         return x0, y0, x1, y1
+
 
 
 
@@ -55,6 +56,54 @@ class Grid:
     def __repr__(self): ####need to improve
         return f'{self.name}'
         
+
+eventsDetails = dict()
+eventsDetails['Market Crash'] = dict()
+eventsDetails['Market Crash']['description'] = '''
+\nYou encountered a markect crash;
+everyone loses $2000.\
+'''
+eventsDetails['Go to Jail'] = dict()
+eventsDetails['Go to Jail']['description'] = '''
+\nYou were arrested on 
+suspicion of drunk driving.\
+'''
+eventsDetails['Get out of Jail Free'] = dict()
+eventsDetails['Get out of Jail Free']['description'] = '''
+\nYou accidentally picked up 
+a magic card.
+Get out of Jail Free. 
+This card may be kept until needed.\
+'''
+eventsDetails['Chairman'] = dict()
+eventsDetails['Chairman']['description'] = '''
+You have been elected
+Chairman of the Board.
+Pay each player $500. \
+'''
+eventsDetails['competition'] = dict()
+eventsDetails['competition']['description'] = '''\
+You have won a crossword competition.
+Collect $900.\
+'''
+eventsDetails['poor tax'] = dict()
+eventsDetails['poor tax']['description'] = '''\
+Pay poor tax of $120.\
+'''
+eventsDetails['parking fee'] = dict()
+eventsDetails['parking fee']['description'] = '''\
+Pay parking fine of $500.\
+'''
+
+class chanceCards():
+    def __init__(self, eventName):
+        self.name = 'chance'
+        # events of chance cards
+        self.eventName = eventName
+        self.description = eventsDetails[eventName]['description']
+        
+    
+    
 
 
 ##########################################
@@ -161,9 +210,6 @@ class Player:
         self.myTurn = False
         self.myProperties = []
         self.money = 50000
-        # self.ori = (0, -1)
-        # self.color = random.choice(colors)
-        # colors.remove(self.color)
         self.playerName = playerName
         self.color = color
     
@@ -287,14 +333,24 @@ Now you have {self.money} dollars left.\
 def splashScreenMode_redrawAll(app, canvas):
     font = 'Baloo 28'
     canvas.create_text(app.width/2, app.height/3, text='Monopoly!',
+                       font='Baloo 60', fill='black')
+    
+    start = Button('start', (app.width/2, app.height/1.8))
+    coord = start.getCoords(app)
+    canvas.create_oval(coord, fill='#FFC125', outline='#FFC125')
+    canvas.create_text(app.width/2, app.height/1.8, 
+                       text='start',
                        font=font, fill='black')
-    canvas.create_text(app.width/2, app.height/2.5, 
-                       text='Press y to start a new game',
-                       font=font, fill='black')
+    
+    canvas.create_text(app.width*0.89, app.height*0.94, text='15-112 Term Project',
+                       font='Times 20', fill='black')
+    
 
 
-def splashScreenMode_keyPressed(app, event):
-    if event.key == 'y':
+def splashScreenMode_mousePressed(app, event):
+    start = Button('start', (app.width/2, app.height/1.8))
+    x0, y0, x1, y1 = start.getCoords(app)
+    if x0 < event.x <= x1 and y0 < event.y <= y1:
         app.mode = 'playerSettingMode'
 
     
@@ -314,6 +370,7 @@ def playerSettingMode_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height/2, 
                        text=f"Press 'y' to start the game!",
                        font=font, fill='black')
+    
 
 
 def playerSettingMode_mousePressed(app, event):
@@ -329,7 +386,7 @@ def playerSettingMode_keyPressed(app, event):
     else:
         name = app.getUserInput('Please enter your name:)')
         if name == '':
-            app.message = 'Please type in a name.'
+            app.message = 'Please type in a valid name.'
         else:
             if app.playerNum < 4:
                 if name != None:
@@ -353,12 +410,48 @@ def mapChooseMode_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height/8, 
                     text="Please press left and right key to choose the map",
                     font=font, fill='black')
-    canvas.create_text(app.width/2, app.height/5.7, 
-                    text="Press 'y' to start the game!",
-                    font=font, fill='black')
     mapChooseMode_drawBoard(app, canvas)
+    start = Button('start', (app.width*0.89, app.height*0.85))
+    coord = start.getCoords(app)
+    canvas.create_oval(coord, fill='#FFC125', outline='#FFC125')
+    canvas.create_text(app.width*0.89, app.height*0.85, 
+                       text='start',
+                       font=font, fill='black')
+    
 
+def mapChooseMode_mousePressed(app, event):
+    start = Button('start', (app.width*0.89, app.height*0.85))
+    x0, y0, x1, y1 = start.getCoords(app)
+    if x0 < event.x <= x1 and y0 < event.y <= y1:
+        # set players
+        colors = ['#00a2ff', '#ff004c', '#ffd900', '#8f02fa'] #blue, red, yellow,green
+        for playerName in app.playerNameList:
+            color = random.choice(colors)
+            colors.remove(color)
+            player = Player(playerName, color)
+            app.playerInfo[player] = dict()
 
+            loc = app.myBoard.getRandomPlace() #returns a tuple
+            player.loc = loc
+            
+            app.playerInfo[player]["loc"] = player.loc
+            app.playerInfo[player]["myTurn"] = player.myTurn
+            app.playerInfo[player]["color"] = player.color
+            ori = player.checkOri(app)
+            player.ori = ori
+        app.playerInfoKeysList = list(app.playerInfo)
+        app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1] #app.playerNameList[0]
+        app.whoseTurn = app.curPlayer
+        app.lastPlayer = app.playerInfoKeysList[0]
+        
+        # set grids in Board
+        makeDetailedInfo(app)
+
+        # modify app mode
+        app.mode = 'gameMode'
+        
+    
+    
 def mapChooseMode_keyPressed(app, event):
 
     if event.key == 'Left':
@@ -375,32 +468,7 @@ def mapChooseMode_keyPressed(app, event):
         app.myBoard = Board(board3)
     elif app.index == 4:
         app.myBoard = Board(board4)
-
-    if event.key == 'y':
-        # set players
-        for playerName in app.playerNameList:
-            colors = ['blue', 'red', 'yellow', 'green']
-            color = random.choice(colors)
-            player = Player(playerName, color)
-            app.playerInfo[player] = dict()
-
-            loc = app.myBoard.getRandomPlace() #returns a tuple
-            player.loc = loc
-            
-            app.playerInfo[player]["loc"] = player.loc
-            app.playerInfo[player]["myTurn"] = player.myTurn
-            app.playerInfo[player]["color"] = player.color
-            ori = player.checkOri(app)
-            player.ori = ori
-        app.playerInfoKeysList = list(app.playerInfo)
-        app.curPlayer = app.playerInfoKeysList[app.curPlayerIndex-1] #app.playerNameList[0]
-        app.whoseTurn = app.curPlayer
-        
-        # set grids in Board
-        makeDetailedInfo(app)
-
-        # modify app mode
-        app.mode = 'gameMode'
+ 
 
 
 def makeDetailedInfo(app): #modify app.boardDetailedInfo
@@ -412,6 +480,8 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
                 'Royal Gorge Park', 'Falls Park', 'Scioto Audubon',
                 'Rifle Mountain Park', 'Fairmount Park', 'City Park',
                 'Zilker Park', 'The Gathering Place', 'Papago Park']
+    events = ['Market Crash', 'Go to Jail', 'Get out of Jail Free',
+            'Chairman', 'competition', 'poor tax', 'parking fee']
     index = 0
     app.boardDetailedInfo = dict()
     rows, cols = app.myBoard.getDims()
@@ -420,20 +490,30 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
             coord = (row, col)
             if app.myBoard.map[row][col] != 0:
                 if index == 7:
-                    gridName = 'prison'
+                    gridName = 'jail'
                     app.boardDetailedInfo[coord] = gridName
                     app.myBoard.map[row][col] = Grid(gridName, 0)
-                elif 0 < index % 7 % 4 <= 4:
-                    gridName = None
-                    gridPriceToBuy = 0
-                    app.boardDetailedInfo[coord] = None
+                elif 0 < index % 8 % 4 <= 4:
+                    if index % 8 % 4 == 1:
+                        gridName = random.choice(events)
+                        grid = app.myBoard.map[row][col] = chanceCards(gridName)
+                        app.boardDetailedInfo[coord] = dict()
+                        app.boardDetailedInfo[coord]['property name'] = 'chance'
+                        app.boardDetailedInfo[coord]['event name'] = gridName
+                        app.boardDetailedInfo[coord]['description'] = (
+                                                                grid.description)
+                    else:
+                        gridName = None
+                        gridPriceToBuy = 0
+                        app.boardDetailedInfo[coord] = None
                 else:
                     gridName = random.choice(nameList)
                     gridPriceToBuy = random.randint(3000, 6000)
                     app.boardDetailedInfo[coord] = dict()
                     app.myBoard.map[row][col] = Grid(gridName, gridPriceToBuy) #####
                     grid = app.myBoard.map[row][col]
-                if (gridName is not None) and (gridName is not 'prison'):
+                if ((gridName is not None) and (gridName is not 'jail') and 
+                    (gridName not in events)):
                         nameList.remove(gridName)
                         app.boardDetailedInfo[coord]['property name'] = gridName
                         app.boardDetailedInfo[coord]['price to buy'] = (
@@ -460,6 +540,7 @@ def mapChooseMode_drawBoard(app, canvas):
 ##########################################
 
 def gameMode_redrawAll(app, canvas):
+    
     font = 'Baloo 24'
     canvas.create_text(app.width/2, 20, text='Game',
                        font=font, fill='black')
@@ -490,26 +571,29 @@ def gameMode_redrawAll(app, canvas):
     if type(app.dice) != str:
         canvas.create_text(app.width*0.87 - app.width*0.015, 
                            app.height*0.85 - app.width*0.1, 
-                           text=f"You rolled {app.dice}.",
+                           text=f"{app.lastPlayer} rolled {app.dice}.",
                            font=font, fill='blue')
         
-    if app.clickGrid == True:
+    if app.clickGrid:
         gameMode_drawGridInfo(app, canvas)
-
-    if app.instructionButton.enabled == True:
-        gameMode_drawInstruction(app, canvas)
-    elif app.cardsButton.enabled == True:
-        gameMode_drawCards(app, canvas)
     
-    if app.askBuy == True:
+    if app.askBuy:
         gameMode_askBuy(app, canvas)
-    elif app.askUpgrade == True:
+    elif app.askUpgrade:
         gameMode_askUpgrade(app, canvas)
-    elif app.askToPayToll == True:
+    elif app.askToPayToll:
         gameMode_askToPayToll(app, canvas)
-    
+    elif app.displayChanceCards:
+        gameMode_displayChanceCards(app, canvas)
+
     gameMode_drawMoneyAndPropertyCoin(app, canvas)
     gameMode_drawDice(app, canvas)
+
+    if app.instructionButton.enabled:
+        gameMode_drawInstruction(app, canvas)
+    elif app.cardsButton.enabled:
+        gameMode_drawCards(app, canvas)
+
 
 def gameMode_askBuy(app, canvas):
     text = 'Do you want to buy the land? y/n'
@@ -522,13 +606,13 @@ def gameMode_askUpgrade(app, canvas):
     font = 'Baloo 15'
     canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
-def gameMode_askToPayToll(app, canvas):
-    row, col = app.curPlayer.loc
+def gameMode_askToPayToll(app, canvas):    
+    row, col = app.lastPlayer.loc
     grid = app.myBoard.map[row][col]
     pOwner = grid.owner
     text = f'''
 Bad luck:(
-You visited {pOwner}'s property - {grid.name} and have to 
+You visited {pOwner}'s {grid.name} and have to 
 pay a ${grid.toll} toll.
     '''
     font = 'Baloo 15'
@@ -544,6 +628,19 @@ pay a ${grid.toll} toll.
     canvas.create_text(cx, cy, text='$', fill='#8B5742', font=font)
     canvas.create_text(app.width*0.66, cy, 
                        text=tollText, font='Arial 13 bold', fill='#8B5742')
+
+def gameMode_displayChanceCards(app, canvas):
+    coord = app.row, app.col
+    x0, y0 = app.width * 0.35, app.height * 0.35
+    x1, y1 = app.width * 0.65, app.height * 0.65
+    canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
+
+    title = 'Chance Card'
+    canvas.create_text(app.width*0.5, app.height*0.5*0.9, 
+                       font='baloo 15', text=title)
+    text = f"{app.boardDetailedInfo[coord]['description']}"
+    canvas.create_text(app.width*0.5, app.height*0.5, 
+                       font='Arial 15', text=text)
 
 def gameMode_drawMoneyAndPropertyCoin(app, canvas):
     
@@ -588,9 +685,12 @@ def gameMode_drawMoneyAndPropertyCoin(app, canvas):
         cx = app.width*(indexOfPlayer+1)/4 - app.width*0.18
         cy = (app.height*0.25*0.4*0.5)*1.3
         if player == app.curPlayer:
-            canvas.create_text(cx, cy, text=player, font=font, fill='blue')
+            canvas.create_text(cx, cy, text=player, font=font, fill='#fa0217')
         else:
-            canvas.create_text(cx, cy, text=player, font=font)
+            canvas.create_text(cx, cy, text=player, font=font,  
+                               fill='black')
+        canvas.create_oval(cx-rCoin, cy*1.6-rCoin, cx+rCoin, cy*1.6+rCoin, 
+                           fill=player.color, outline=player.color)
 
 
 def gameMode_drawDice(app, canvas):
@@ -643,14 +743,16 @@ def gameMode_mousePressed(app, event):
         app.clickGrid = True
         app.gridInfo = app.boardDetailedInfo[(row, col)]
         app.gridClicked = (row, col)
-
+    
     x0R, y0R, x1R, y1R = app.dieButton.getCoords(app)
     if ((not app.payToll) and
-        (not app.askToPayToll) and
         (not app.askBuy) and 
         (not app.askUpgrade) and 
         (not app.instructionButton.enabled) and
         (not app.cardsButton.enabled)):
+        if app.displayChanceCards or app.askToPayToll:
+            app.displayChanceCards = False
+            app.askToPayToll = False
         if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
             # after A rolled the dice, current turn changes
             app.dice = app.curPlayer.playDice()
@@ -660,8 +762,9 @@ def gameMode_mousePressed(app, event):
             row, col = app.curPlayer.loc
             app.row, app.col = row, col
             
-            if (app.boardDetailedInfo[(row, col)] != None and
-                app.myBoard.map[row][col].name != 'prison'):
+            if ((app.boardDetailedInfo[(row, col)] != None) and
+                (app.myBoard.map[row][col].name != 'jail') and 
+                (app.boardDetailedInfo[(row, col)]['property name'] != 'chance')):
                 if app.boardDetailedInfo[(row, col)]['owner'] == None:
                     app.askBuy = True
                 elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
@@ -670,11 +773,19 @@ def gameMode_mousePressed(app, event):
                     app.startToAskForToll = time.time()
                     app.askToPayToll = True
                     app.payToll = True
+                    
+                    
+            elif (app.boardDetailedInfo[(row, col)] != None and
+                  app.myBoard.map[row][col].name == 'chance'):
+                  app.displayCCtime = time.time()
+                  app.displayChanceCards = True
+                  app.playChanceCards = True
+                  
+            app.lastPlayer = app.curPlayer
             
             if ((not app.askBuy) and 
-                (not app.askUpgrade) and 
-                (not app.askToPayToll) and
-                (not app.payToll)):
+                (not app.askUpgrade)):
+                
                 app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
                 app.curPlayer.myTurn = 'False'
                 nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
@@ -688,17 +799,26 @@ def gameMode_timerFired(app):
         app.clickGrid = False
     updateDetailedInfoDict(app)
     if app.payToll:
-        app.curPlayer.payToll(app)
+        app.lastPlayer.payToll(app)
         app.payToll = False
 
-    if (app.askToPayToll) and (time.time() - app.startToAskForToll > 5):
+    if (app.askToPayToll) and (time.time() - app.startToAskForToll > 3.7):
         app.askToPayToll = False
     
-    if ((type(app.dice) != str) and (time.time() - app.dieMsgTime > 4)):
+    if ((type(app.dice) != str) and (time.time() - app.dieMsgTime > 2.5)):
         app.dice = ''
     
+    if app.playChanceCards:
+        gameMode_playChanceCards(app)
+        app.playChanceCards = False
+    if (app.displayChanceCards) and (time.time() - app.displayCCtime > 3.2):
+        app.displayChanceCards = False
     
-    
+        
+def gameMode_playChanceCards(app): #need to improve
+    row, col = app.row, app.col
+    pass
+
         
         
 def gameMode_drawGridInfo(app, canvas):
@@ -709,16 +829,26 @@ def gameMode_drawGridInfo(app, canvas):
     x1, y1 = gridIsocx + app.width * 0.07, gridIsocy - app.height * 0.02
     canvas.create_rectangle(x0, y0, x1, y1, fill = '#FFEC8B')
 
-
-    font = 'Arial 9'
-    text = ''
-    for key in app.gridInfo:
-        if key == 'property name':
-            text += f'{key} :\n{app.gridInfo[key]}\n'
-        else:
-            text += f'{key} : {app.gridInfo[key]}\n'
-    canvas.create_text(gridIsocx, (y1+y0)/2, 
-                           text=text, font=font, fill='#8B3A3A')
+    if app.gridInfo == 'jail':
+        text = 'Jail'
+        font = 'Baloo 14'
+        canvas.create_text(gridIsocx, (y1+y0)/2, 
+                           text=text, font=font, fill='black')
+    elif app.gridInfo['property name'] == 'chance':
+        text = 'Chance Cards'
+        font = 'Baloo 14'
+        canvas.create_text(gridIsocx, (y1+y0)/2, 
+                           text=text, font=font, fill='black')
+    else:
+        text = ''
+        font = 'Arial 9'
+        for key in app.gridInfo:
+            if key == 'property name':
+                text += f'{key} :\n{app.gridInfo[key]}\n'
+            else:
+                text += f'{key} : {app.gridInfo[key]}\n'
+        canvas.create_text(gridIsocx, (y1+y0)/2, 
+                            text=text, font=font, fill='black')
 
 
 def gameMode_drawPlayer(app, canvas):
@@ -737,24 +867,27 @@ def gameMode_drawPlayer(app, canvas):
         canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
 
 def gameMode_keyPressed(app, event):
-    if app.instructionButton.enabled == True and event.key == 'Escape':
+    if ((app.instructionButton.enabled or app.cardsButton.enabled) and 
+        event.key == 'Escape'):
         app.instructionButton.enabled = False
-    if app.cardsButton.enabled == True and event.key == 'Escape':
         app.cardsButton.enabled = False
 
-        
+    if ((app.askBuy or app.askUpgrade or app.askToPayToll) and 
+        (type(app.dice) != str)):
+        app.dice = ''
+        app.lastPlayer = app.curPlayer
     if ((app.askBuy or app.askUpgrade) and 
         (event.key == 'y' or event.key == 'n')):
         row, col = app.row, app.col
+        # app.lastPlayer = app.curPlayer
         if event.key == 'y':
             if ((app.myBoard.map[row][col] != 0) and 
                 (app.myBoard.map[row][col] != 1) and
                 (app.myBoard.map[row][col].name != None) and
-                (app.myBoard.map[row][col].name != 'prison')): #eligible properties
+                (app.myBoard.map[row][col].name != 'jail')): #eligible properties
                 # buy 
                 if app.askBuy:
                     # curRow, curCol = app.playerInfo[app.curPlayer]['loc']
-                    # print('want to buy')
                     app.curPlayer.buyProperty(app)
                     app.myBoard.map[row][col].buying(app.curPlayer)
                     app.askBuy = False
@@ -780,12 +913,10 @@ def updateDetailedInfoDict(app):
         for col in range(cols):
             if (isinstance(app.myBoard.map[row][col], Grid) and 
                 app.myBoard.map[row][col] != 1 and 
-                app.myBoard.map[row][col].name != 'prison'):
-                # print(app.myBoard.map[row][col])
+                app.myBoard.map[row][col].name != 'jail'):
 
                 grid = app.myBoard.map[row][col]
                 coord = (row, col)
-                # print(app.boardDetailedInfo[coord])
                 app.boardDetailedInfo[coord]['price to buy'] = grid.priceToBuy
                 app.boardDetailedInfo[coord]['owner'] = grid.owner
                 app.boardDetailedInfo[coord]['cost to upgrade'] = (
@@ -812,45 +943,102 @@ def gameMode_drawBoard(app, canvas):
                 cx = app.gridWidth * col + app.width * 0.4
                 cy = app.gridHeight * row
                 
-                if app.boardDetailedInfo[(row, col)] == 'prison':
-                    placePrisonGrid(app, canvas, cx, cy)
+                if app.boardDetailedInfo[(row, col)] == 'jail':
+                    placeJailGrid(app, canvas, cx, cy)
                 elif app.boardDetailedInfo[(row, col)] == None:
                     placeNoneGrid(app, canvas, cx, cy)
+                elif (app.boardDetailedInfo[(row, col)]['property name'] == 
+                                                              'chance'):
+                    placeChanceCards(app, canvas, cx, cy)
                 else:
-                    placeGrid(app, canvas, cx, cy)
+                    if app.myBoard.map[row][col].owner != None:
+                        placeOccupiedGrid(app, canvas, cx, cy, row, col)
+                    else:
+                        placeGrid(app, canvas, cx, cy)
                     
 
 def placeGrid(app, canvas, cx, cy):
-    Isocx, Isocy = twoDToIso(cx, cy)
+    coordCenterS = getGridCenterSquareCoord(app, cx, cy)
+    coordLeftSide = getGridLeftSideCoord(app, cx, cy)
+    coordRightSide = getGridRightSideCoord(app, cx, cy)
+    canvas.create_polygon(coordLeftSide, fill='#50961b', outline='#50961b')
+    canvas.create_polygon(coordRightSide, fill='#316e03', outline='#316e03')
+    canvas.create_polygon(coordCenterS, fill='#64b02a', outline='#50941c')
 
-    isox0, isoy0 = Isocx, Isocy - app.gridHeight/2
-    isox1, isoy1 = Isocx + app.gridWidth, Isocy
-    isox2, isoy2 = Isocx, Isocy + app.gridHeight/2
-    isox3, isoy3 = Isocx - app.gridWidth, Isocy
-    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='#BFEFFF', outline='black')
+def placeOccupiedGrid(app, canvas, cx, cy, row, col):
+    color = app.myBoard.map[row][col].owner.color
+    coordCenterS = getGridCenterSquareCoord(app, cx, cy)
+    coordLeftSide = getGridLeftSideCoord(app, cx, cy)
+    coordRightSide = getGridRightSideCoord(app, cx, cy)
+    if color == '#00a2ff':
+        color2 = '#0287d4'
+        color3 = '#0273b5'
+    elif color == '#ff004c':
+        color2 = '#e30245'
+        color3 = '#bf023a'
+    elif color == '#ffd900':
+        color2 = '#e0bf02'
+        color3 = '#bfa302'
+    elif color == '#8f02fa':
+        color2 = '#7c02d9'
+        color3 = '#5c02a1'
+    canvas.create_polygon(coordLeftSide, fill=color2, outline=color2)
+    canvas.create_polygon(coordRightSide, fill=color3, outline=color3)
+    canvas.create_polygon(coordCenterS, fill=color, outline=color2)
 
-
-def placePrisonGrid(app, canvas, cx, cy):
-    twoDcx, twoDcy = twoDToIso(cx, cy)
-
-    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
-    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
-    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
-    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
-    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='yellow', outline='black')
+def placeJailGrid(app, canvas, cx, cy):
+    coordCenterS = getGridCenterSquareCoord(app, cx, cy)
+    coordLeftSide = getGridLeftSideCoord(app, cx, cy)
+    coordRightSide = getGridRightSideCoord(app, cx, cy)
+    canvas.create_polygon(coordLeftSide, fill='#f7b60f', outline='#f7b302')
+    canvas.create_polygon(coordRightSide, fill='#e6a602', outline='#e6a602')
+    canvas.create_polygon(coordCenterS, fill='#FFC125', outline='#fcb80a')
 
 def placeNoneGrid(app, canvas, cx, cy):
-    twoDcx, twoDcy = twoDToIso(cx, cy)
+    coordCenterS = getGridCenterSquareCoord(app, cx, cy)
+    coordLeftSide = getGridLeftSideCoord(app, cx, cy)
+    coordRightSide = getGridRightSideCoord(app, cx, cy)
+    canvas.create_polygon(coordLeftSide, fill='#7d4d3b', outline='#7d4d3b')
+    canvas.create_polygon(coordRightSide, fill='#663f30', outline='#5e3a2c')
+    canvas.create_polygon(coordCenterS, fill='#8B5742', outline='#5e3a2c')
 
-    isox0, isoy0 = twoDcx, twoDcy - app.gridHeight/2
-    isox1, isoy1 = twoDcx + app.gridWidth, twoDcy
-    isox2, isoy2 = twoDcx, twoDcy + app.gridHeight/2
-    isox3, isoy3 = twoDcx - app.gridWidth, twoDcy
-    coord = isox0, isoy0, isox1, isoy1, isox2, isoy2, isox3, isoy3
-    canvas.create_polygon(coord, fill='#8B8970', outline='black')
+def placeChanceCards(app, canvas, cx, cy):
+    coordCenterS = getGridCenterSquareCoord(app, cx, cy)
+    coordLeftSide = getGridLeftSideCoord(app, cx, cy)
+    coordRightSide = getGridRightSideCoord(app, cx, cy)
+    canvas.create_polygon(coordLeftSide, fill='#98def5', outline='#6ed4f5')
+    canvas.create_polygon(coordRightSide, fill='#39c8f7', outline='#1dc0f5')
+    canvas.create_polygon(coordCenterS, fill='#BFEFFF', outline='#9AC0CD')
+    
+def getGridCenterSquareCoord(app, twoDcx, twoDcy):
+    Isocx, Isocy = twoDToIso(twoDcx, twoDcy)
+    isox00, isoy00 = Isocx, Isocy - app.gridHeight/2
+    isox01, isoy01 = Isocx + app.gridWidth, Isocy
+    isox02, isoy02 = Isocx, Isocy + app.gridHeight/2
+    isox03, isoy03 = Isocx - app.gridWidth, Isocy
+    coordCenterS = (isox00, isoy00, isox01, isoy01, isox02, isoy02, 
+                    isox03, isoy03)
+    return coordCenterS
 
+def getGridLeftSideCoord(app, twoDcx, twoDcy):
+    Isocx, Isocy = twoDToIso(twoDcx, twoDcy)
+    isox10, isoy10 = Isocx - app.gridWidth, Isocy
+    isox11, isoy11 = Isocx, Isocy + app.gridHeight/2
+    isox13, isoy13 = isox11, isoy11 + app.gridThickness
+    isox12, isoy12 = isox10, isoy10 + app.gridThickness
+    coordLeftSide = (isox10, isoy10, isox11, isoy11, isox13, isoy13,
+                     isox12, isoy12)
+    return coordLeftSide
+
+def getGridRightSideCoord(app, twoDcx, twoDcy):
+    Isocx, Isocy = twoDToIso(twoDcx, twoDcy)
+    isox20, isoy20 = Isocx, Isocy + app.gridHeight/2
+    isox21, isoy21 = Isocx + app.gridWidth, Isocy
+    isox22, isoy22 = Isocx + app.gridWidth, Isocy + app.gridThickness
+    isox23, isoy23 = Isocx, Isocy + app.gridHeight/2 + app.gridThickness
+    coordRightSide = (isox20, isoy20, isox21, isoy21, isox22, isoy22,
+                      isox23, isoy23)
+    return coordRightSide
 
 
 ###########
@@ -892,8 +1080,9 @@ def gameMode_drawCards(app, canvas):
 
 def appStarted(app):
     app.mode = 'splashScreenMode'
-    app.gridHeight = 23
-    app.gridWidth = 23
+    app.gridHeight = app.height*0.038
+    app.gridWidth = app.height*0.038
+    app.gridThickness = app.height*0.028
     app.myBoard = Board(board1)
     app.index = 1
     app.playerNum = 0
@@ -925,6 +1114,12 @@ def appStarted(app):
     cxDieButton = app.width*0.87 - app.width*0.03
     cyDieButton = app.height*0.85 - app.width*0.03
     app.dieButton = Button('Throw a die', (cxDieButton, cyDieButton))
+
+    app.displayChanceCards = False
+    app.playChanceCards = False
+    # app.eventsDetails = eventsDetails
+
+
 
 
 
