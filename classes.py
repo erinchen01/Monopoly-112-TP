@@ -212,9 +212,10 @@ class Player:
         self.cards = []
         self.myTurn = False
         self.myProperties = []
-        self.money = 50000
+        self.money = 500
         self.playerName = playerName
         self.color = color
+        self.banned = False
     
     
     def __repr__(self):
@@ -555,7 +556,7 @@ def gameMode_redrawAll(app, canvas):
         canvas.create_text(app.width*0.87 - app.width*0.015, 
                            app.height*0.85 - app.width*0.1, 
                            text=f"{app.lastPlayer} rolled {app.dice}.",
-                           font='Baloo 24', fill='blue')
+                           font='Baloo 24', fill='#50961b')
         
     if app.clickGrid:
         gameMode_drawGridInfo(app, canvas)
@@ -581,13 +582,19 @@ def gameMode_redrawAll(app, canvas):
     
     if app.bankrupcy:
         gameMode_displayBankrupcyMsg(app, canvas)
+    
+    if app.displayWinnerMsg:
+        gameMode_drawWinnerMsg(app, canvas)
 
 
-
+def gameMode_drawWinnerMsg(app, canvas):
+    text = f'Congrats! {app.curPlayer} is the last player.'
+    font = 'Baloo 15'
+    canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
 def gameMode_displayBankrupcyMsg(app, canvas):
     text = f'{app.bankrupt} is declared bankrupt.'
-    canvas.create_text(app.width*0.5, app.height*0.5*0.9, 
+    canvas.create_text(app.width*0.5, app.height*0.25, 
                        font='baloo 15', text=text)
 
 
@@ -601,23 +608,21 @@ def gameMode_drawButtons(app, canvas):
                        fill='#FFC125', outline='#FFC125') # Instruction
     canvas.create_text(app.width * 0.83, app.height * 0.28, 
                        text="Instruction", anchor='sw',
-                       fill='black', font=font)
+                       fill='#8B5742', font=font)
 
     x0Card, x1Card = x0Ins, x1Ins
     y0Card, y1Card = app.height * 0.35, app.height * 0.45
     canvas.create_oval(x0Card, y0Card, x1Card, y1Card, 
                        fill='#FFC125', outline='#FFC125') # Special cards
-    canvas.create_text(app.width * 0.865, app.height * 0.43, text = "Cards",
-                       anchor = 'sw',
-                       fill = 'black', font=font)
+    canvas.create_text(app.width * 0.865, app.height * 0.43, text="Cards",
+                       anchor='sw', fill='#8B5742', font=font)
     
     x0P, x1P = x0Ins, x1Ins
     y0P, y1P = app.height * 0.5, app.height * 0.6
     canvas.create_oval(x0P, y0P, x1P, y1P, 
-                       fill='#FFC125', outline='#FFC125') # Special cards
-    canvas.create_text(app.width * 0.865, app.height * 0.58, text = "Properties",
-                       anchor = 'sw',
-                       fill = 'black', font=font)
+                       fill='#FFC125', outline='#FFC125') # Properties
+    canvas.create_text(app.width * 0.833, app.height * 0.58, text="Properties",
+                       anchor='sw', fill='#8B5742', font=font)
     
 
 
@@ -722,26 +727,28 @@ def gameMode_drawMoneyAndPropertyCoin(app, canvas):
 def gameMode_drawDice(app, canvas):
     x0S, x1S = app.width*0.87 - app.width*0.03, app.width*0.87 + app.width*0.03
     y0S, y1S = app.height*0.85 - app.width*0.03, app.height*0.85 + app.width*0.03
-    canvas.create_rectangle(x0S, y0S, x1S, y1S, outline='#FDC669', width=4.5)
+    canvas.create_rectangle(x0S, y0S, x1S, y1S, outline='#4f2f22', 
+                            fill='#7d4d3b', width=4.5)
 
     p01 = x0S, y0S
     p02 = x1S, y0S
     p03 = x0S + app.width*0.0182, y0S - app.width*0.0182
     p04 = x1S + app.width*0.0182, y0S - app.width*0.0182
     canvas.create_polygon(p01, p02, p04, p03, 
-                          outline='#FDC669', fill='white', width=4.5)
+                          outline='#4f2f22', fill='#5e3a2c', width=4.5)
     
     p11 = p04
     p12 = p02
     p13 = x1S, y1S
     p14 = x1S + app.width*0.0182, y1S - + app.width*0.0182
     canvas.create_polygon(p11, p12, p13, p14,
-                          outline='#FDC669', fill='white', width=4.5)
+                          outline='#4f2f22', fill='#663f30', width=4.5)
     
     x0D, y0D, x1D, y1D = app.dieButton.getCoords(app)
     canvas.create_oval(x0D, y0D, x1D, y1D, fill='#FFC125', 
                             outline='#FFC125')
-    canvas.create_text((x0D+x1D)/2, (y0D+y1D)/2, text='Roll', font='Baloo 17')
+    canvas.create_text((x0D+x1D)/2, (y0D+y1D)/2, text='Roll', 
+                       fill='#8B5742', font='Baloo 32')
     
     
 def gameMode_mousePressed(app, event):
@@ -787,14 +794,20 @@ def gameMode_mousePressed(app, event):
         if app.displayChanceCards or app.askToPayToll:
             app.displayChanceCards = False
             app.askToPayToll = False
-        if ((app.curPlayer in app.criminals) and 
-            (app.criminals[app.curPlayer] > 0)):
+        
+        gameMode_bankrupcyChangeTurn(app)
+
+        if (((app.curPlayer in app.criminals) and 
+            (app.criminals[app.curPlayer] > 0))):
+            
             app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
             app.curPlayer.myTurn = 'False'
             nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
             app.curPlayer = nextPlayer
             app.curPlayer.myTurn = 'True'
             app.whoseTurn = nextPlayer
+            gameMode_bankrupcyChangeTurn(app)
+        
         if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
             # after A rolled the dice, current turn changes
             for criminal in app.criminals:
@@ -828,13 +841,27 @@ def gameMode_mousePressed(app, event):
             
             if ((not app.askBuy) and 
                 (not app.askUpgrade)):
-                
+                gameMode_bankrupcyChangeTurn(app)
                 app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
                 app.curPlayer.myTurn = 'False'
                 nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
                 app.curPlayer = nextPlayer
                 app.curPlayer.myTurn = 'True'
                 app.whoseTurn = nextPlayer
+
+def gameMode_bankrupcyChangeTurn(app):
+    while (app.curPlayerIndex in app.bannedPlayerIndex):
+            app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+            app.curPlayer.myTurn = 'False'
+            
+            print(f'app.bannedPlayerIndex = {app.bannedPlayerIndex}')
+            
+            print(f'curPlayerIndex = {app.curPlayerIndex}')
+            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+            app.curPlayer = nextPlayer
+            app.curPlayer.myTurn = 'True'
+            app.whoseTurn = nextPlayer
+    
 
     
 def gameMode_timerFired(app):
@@ -854,22 +881,32 @@ def gameMode_timerFired(app):
     if app.playChanceCards:
         gameMode_playChanceCards(app)
         app.playChanceCards = False
-    if (app.displayChanceCards) and (time.time() - app.displayCCtime > 3.2):
+    if (app.displayChanceCards) and (time.time() - app.displayCCtime > 2.2):
         app.displayChanceCards = False
     
     if app.bankrupcy == True and (time.time() - app.showBankrupcyMsg > 2):
         app.bankrupcy = False
         
-    # will crash
-    if app.curPlayer.money <= 0:
+    if len(app.bannedPlayerIndex) + 1 == app.playerNum:
+        app.winner = True
+
+    if app.lastPlayer.money <= 0:
         app.bankrupcy = True
         app.showBankrupcyMsg = time.time()
-        app.bankrupt = f'{app.curPlayer.playerName}'
-        print(app.playerInfo)
-        del app.playerInfo[app.curPlayer]
-
-            
+        app.bankrupt = f'{app.lastPlayer.playerName}'
+        app.lastPlayer.banned = True
+        app.bannedPlayerIndex.add((app.curPlayerIndex - 1 + app.playerNum) % 
+                                  app.playerNum)
+    if app.winner:
+        gameMode_bankrupcyChangeTurn(app)
+        app.askBuy = app.askUpgrade = False
+        app.displayWinnerMsg = True
+        app.askBuy = app.askUpgrade = False
+        app.bankrupcy = False
+        
     
+
+        
         
 def gameMode_playChanceCards(app): #need to improve
     row, col = app.row, app.col
@@ -1146,11 +1183,12 @@ def gameMode_drawInstruction(app, canvas):
     x0, y0 = app.width * 0.2, app.height * 0.2
     x1, y1 = app.width * 0.8, app.height * 0.8
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    font = 'Baloo 20'
+    font = 'Baloo 23'
     text = 'Instruction'
     command = "press 'esc' to return"
+    brown = '#8B5742'
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    canvas.create_text((x0+x1)/2, (y0+y1)*0.25, text=text, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.25, text=text, fill=brown, font=font)
     canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
     text1 = 'As you walk on the map, you will see grids of various colors.'
@@ -1193,11 +1231,12 @@ def gameMode_drawCards(app, canvas):
     font = 'Baloo 20'
     title = 'Cards you have'
     cards = ''
+    brown = '#8B5742'
     for eachCard in app.curPlayer.cards:
         cards += eachCard
     command = "press 'esc' to return"
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, fill=brown, font='Baloo 23')
     canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=cards, font=font)
     canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
@@ -1207,12 +1246,15 @@ def gameMode_drawProperties(app, canvas):
     font = 'Baloo 20'
     title = 'Properties you have'
     properties = ''
+    brown = '#8B5742'
     for eachP in app.curPlayer.myProperties:
         properties += f'{eachP}   '
     command = "press 'esc' to return"
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
-    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, font=font)
-    canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=properties, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, 
+                       fill=brown, font='Baloo 23')
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=properties, 
+                       fill=brown, font=font)
     canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
 ##########################################
@@ -1256,8 +1298,8 @@ def appStarted(app):
     cyPro = app.height * 0.55
     app.propertiesButton = Button('Properties', (cxPro, cyPro))
 
-    cxDieButton = app.width*0.87 - app.width*0.03
-    cyDieButton = app.height*0.85 - app.width*0.03
+    cxDieButton = app.width*0.9
+    cyDieButton = app.height*0.89
     app.dieButton = Button('Throw a die', (cxDieButton, cyDieButton))
 
     app.displayChanceCards = False
@@ -1265,8 +1307,10 @@ def appStarted(app):
 
     app.criminals = dict()
     app.bankrupcy = False
-    app.backrupt = None
+    app.bannedPlayerIndex = set()
 
+    app.winner = False
+    app.displayWinnerMsg = False
 
 
 
