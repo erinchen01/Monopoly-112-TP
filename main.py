@@ -1,8 +1,11 @@
 from cmu_112_graphics import *
 
+from classes import *
+
+from helper import *
+
 import random, tkinter, time, decimal
 
-from classes import *
 
 
 ##########################################
@@ -50,11 +53,6 @@ def playerSettingMode_redrawAll(app, canvas):
                        text=f"Press 'y' to start the game!",
                        font=font, fill='black')
     
-
-
-def playerSettingMode_mousePressed(app, event):
-    pass
-        
 
 def playerSettingMode_keyPressed(app, event):
     if event.key == 'y':
@@ -796,13 +794,6 @@ def updateDetailedInfoDict(app):
 ###########
 #draw map
 ###########
-# the concept of the calculation of isometric x and y is from 
-# https://gamedevelopment.tutsplus.com/tutorials/
-# creating-isometric-worlds-a-primer-for-game-developers--gamedev-6511
-def twoDToIso(twoDx, twoDy):
-    isoX = twoDx - twoDy
-    isoY = (twoDx + twoDy) / 2
-    return(isoX, isoY)
 
 def gameMode_drawBoard(app, canvas):
     rows, cols = app.myBoard.getDims()
@@ -909,17 +900,6 @@ def getGridRightSideCoord(app, twoDcx, twoDcy):
                       isox23, isoy23)
     return coordRightSide
 
-
-###########
-#click map
-###########
-# the concept of the calculation of twoD x and twoD y is from 
-# https://gamedevelopment.tutsplus.com/tutorials/
-# creating-isometric-worlds-a-primer-for-game-developers--gamedev-6511
-def isoToTwoD(isoX, isoY):
-    twoDx = (2 * isoY + isoX) / 2
-    twoDy = (2 * isoY - isoX) / 2
-    return twoDx, twoDy
 
 ##################
 # Instruction and Cards Canvas
