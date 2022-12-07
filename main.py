@@ -2,332 +2,7 @@ from cmu_112_graphics import *
 
 import random, tkinter, time, decimal
 
-
-class Button:
-    def __init__(self, buttonName, centerpoints):
-        self.name = buttonName
-        self.enabled = False
-        self.coord = centerpoints
-    
-    def getCoords(self, app):
-        cx, cy = self.coord
-        x0, x1 = cx - app.width * 0.05, cx + app.width * 0.05
-        y0, y1 = cy - app.height * 0.05, cy + app.height * 0.05
-        return x0, y0, x1, y1
-
-
-
-
-##########################################
-# Grid class
-##########################################
-# This function of roundHalfUp(d) is taken from 112 cource website
-def roundHalfUp(d):
-    rounding = decimal.ROUND_HALF_UP
-    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
-
-class Grid:
-    def __init__(self, gridName, gridPriceToBuy):
-        self.name = gridName
-        self.owner = None
-        self.priceToBuy = gridPriceToBuy
-        self.priceToUpgrade = int(0.4 * self.priceToBuy)
-        
-        self.level = 0
-        self.toll = 0
-        self.priceToSell = int(self.priceToBuy * 0.7)
-
-        self.chargeTolls = False
-    
-    def buying(self, owner):
-        self.owner = owner
-        self.level = 1
-        self.chargeTolls = True
-        self.toll = int(0.35 * self.priceToBuy)
-        self.priceToSell = int(self.priceToBuy * 0.7)
-
-    def upgrading(self):
-        self.level += 1
-        self.toll += int(0.35 * self.priceToBuy)
-        self.priceToSell == int(self.priceToBuy * 0.7) * self.level
-
-    def selling(self):
-        self.owner = None
-        self.toll = 0
-
-    def __repr__(self): ####need to improve
-        return f'{self.name}'
-        
-
-eventsDetails = dict()
-eventsDetails['Market Crash'] = dict()
-eventsDetails['Market Crash']['description'] = '''
-\nYou encountered a markect crash;
-everyone loses $2000.\
-'''
-eventsDetails['Go to Jail'] = dict()
-eventsDetails['Go to Jail']['description'] = '''
-\nYou were arrested on 
-suspicion of drunk driving
-for three rounds.\
-'''
-eventsDetails['Get out of Jail Free'] = dict()
-eventsDetails['Get out of Jail Free']['description'] = '''
-\nYou accidentally picked up 
-a magic card.
-Get out of Jail Free. 
-This card may be kept until needed.\
-'''
-eventsDetails['Chairman'] = dict()
-eventsDetails['Chairman']['description'] = '''
-You have been elected
-Chairman of the Board.
-Pay each player $500. \
-'''
-eventsDetails['competition'] = dict()
-eventsDetails['competition']['description'] = '''\
-You have won a crossword competition.
-Collect $900.\
-'''
-eventsDetails['poor tax'] = dict()
-eventsDetails['poor tax']['description'] = '''\
-Pay poor tax of $120.\
-'''
-eventsDetails['parking fee'] = dict()
-eventsDetails['parking fee']['description'] = '''\
-Pay parking fine of $500.\
-'''
-
-class chanceCards():
-    def __init__(self, eventName):
-        self.name = 'chance'
-        # events of chance cards
-        self.eventName = eventName
-        self.description = eventsDetails[eventName]['description']
-        
-    
-    
-
-
-##########################################
-# Board class
-##########################################
-board1 = [[0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-          [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
-          [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
-          [0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
-          [0,0,0,0,0,0,0,0,0,1,1,1,0,0,1],
-          [1,1,1,1,1,1,1,1,1,1,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
-          [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
-          [1,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
-          [1,1,1,0,0,0,0,0,0,1,0,0,0,0,0],
-          [0,0,1,0,0,0,0,0,0,1,0,0,0,0,0],
-          [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0]
-]
-
-
-
-board2 = [[0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
-          [1,1,1,1,1,1,1,1,1,0,0,0,0,0,1],
-          [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1]
-]
-
-board3 = [[0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
-          [0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
-          [0,0,0,1,1,1,1,1,1,1,0,0,0,0,1],
-          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
-          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
-          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
-          [0,0,0,1,0,0,0,0,0,1,1,1,1,1,1],
-          [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
-          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
-          [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
-          [1,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
-          [0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
-          [0,1,1,1,1,1,1,1,1,1,0,0,0,0,0]
-]
-
-board4 = [[0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
-          [1,1,1,1,0,0,0,0,0,0,0,1,0,0,0],
-          [1,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-          [1,0,0,0,0,0,0,1,1,1,1,1,0,0,0],
-          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-          [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-          [1,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-]
-
-
-
-class Board():
-    def __init__(self, selectedBoard):
-        self.map = selectedBoard
-
-    def getDims(self):
-        rows = len(self.map)
-        cols = len(self.map[0])
-        return rows, cols
-
-    def getRandomPlace(self): 
-        rows, cols = self.getDims()
-        if True:
-            row = random.randint(0, rows-1)
-            for col in range(cols):
-                if self.map[row][col]:
-                    return row, col
-
-
-
-##########################################
-# Player class
-##########################################
-
-class Player:
-    def __init__(self, playerName, color):
-        self.cards = []
-        self.myTurn = False
-        self.myProperties = []
-        self.money = 500
-        self.playerName = playerName
-        self.color = color
-        self.banned = False
-    
-    
-    def __repr__(self):
-        return f'Player {self.playerName}'
- 
-
-    def isLegalMove(self, app, checkingMove):
-        curLocRow, curLocCol = self.loc
-        dRow, dCol = checkingMove
-        boardRows, boardCols = app.myBoard.getDims()
-
-        if ((0 <= curLocRow + dRow < boardRows) and 
-            (0 <= curLocCol + dCol < boardCols) and
-            app.myBoard.map[curLocRow + dRow][curLocCol + dCol]):
-            return True
-        return False
-
-
-    def checkOri(self, app):
-        leftMove = (0, -1)
-        rightMove = (0, +1)
-        upMove = (+1, 0)
-        downMove = (-1, 0)
-        for ori in (rightMove, leftMove, downMove, upMove):
-            if self.isLegalMove(app, ori):
-                return ori
-
-
-    def changeOri(self, app): #only modify self.ori
-        lastOri = self.ori
-        leftMove = (0, -1)
-        rightMove = (0, +1)
-        upMove = (+1, 0)
-        downMove = (-1, 0)
-        availableOris = [rightMove, leftMove, downMove, upMove]
-        if lastOri == rightMove:
-            availableOris.remove(leftMove)
-        elif lastOri == leftMove:
-            availableOris.remove(rightMove)
-        elif lastOri == downMove:
-            availableOris.remove(upMove)
-        else:
-            availableOris.remove(downMove)
-
-        for checkingMove in availableOris:
-            if self.isLegalMove(app, checkingMove):
-                self.ori = checkingMove
-
-    def playDice(self):
-        dice = random.randint(1,6)
-        return dice
-
-    def move(self, app, dice): # only modify self.loc
-        curLocRow, curLocCol = self.loc
-        for _ in range(dice):
-            if not self.isLegalMove(app, self.ori):
-                self.changeOri(app)
-            curLocRow += self.ori[0]
-            curLocCol += self.ori[1]
-            self.loc = curLocRow, curLocCol
-        app.playerInfo[app.curPlayer]['loc'] = self.loc
-    
-
-    def changeMyTurn(self):
-        self.myTurn = True
-        
-
-    def buyProperty(self, app):
-        curRow, curCol = app.row, app.col
-        grid = app.myBoard.map[curRow][curCol]
-        # # modify the params of players
-        self.myProperties.append(grid)
-        self.money -= grid.priceToBuy
-
-
-    def upgradeProperty(self, app): # modify params of player and return msg
-        curRow, curCol = self.loc
-        grid = app.myBoard.map[curRow][curCol]
-        if self.money < grid.priceToUpgrade:
-            return "No enough money to upgrade!"
-        elif self.money >= grid.priceToUpgrade:
-            self.money -= grid.priceToUpgrade
-            # modify the params of the grid
-            grid.upgrading()
-            return "Successfully upgraded the property."
-
-
-    def sellProperty(self, app):
-        curRow, curCol = self.loc
-        grid = app.myBoard.map[curRow][curCol]
-        # modify the params of players
-        self.money += grid.priceToSell
-        self.myProperties.remove(grid)
-
-        # modify the params of the grid
-        grid.selling()
-        return f'''Successfully sold {grid.name}.\
-Now you have {self.money} dollars left.\
-        '''
-
-    def payToll(self, app):
-        row, col = self.loc
-        grid = app.myBoard.map[row][col]
-        # toll = app.boardDetailedInfo[coord]['toll']
-        toll = grid.toll
-        self.money -= toll
-        owner = grid.owner
-        # owner = app.boardDetailedInfo[coord]['owner']
-        owner.money += toll
-
-
-        
+from backup import *
 
 
 ##########################################
@@ -517,7 +192,7 @@ def makeDetailedInfo(app): #modify app.boardDetailedInfo
                     app.boardDetailedInfo[coord] = dict()
                     app.myBoard.map[row][col] = Grid(gridName, gridPriceToBuy) #####
                     grid = app.myBoard.map[row][col]
-                if ((gridName is not None) and (gridName is not 'jail') and 
+                if ((gridName != None) and (gridName != 'jail') and 
                     (gridName not in events)):
                         nameList.remove(gridName)
                         app.boardDetailedInfo[coord]['property name'] = gridName
@@ -569,6 +244,8 @@ def gameMode_redrawAll(app, canvas):
         gameMode_askToPayToll(app, canvas)
     elif app.displayChanceCards:
         gameMode_displayChanceCards(app, canvas)
+    elif app.askToUseJailCard:
+        gameMode_askToUseJailCard(app, canvas)
 
     gameMode_drawMoneyAndPropertyCoin(app, canvas)
     gameMode_drawDice(app, canvas)
@@ -586,6 +263,11 @@ def gameMode_redrawAll(app, canvas):
     if app.displayWinnerMsg:
         gameMode_drawWinnerMsg(app, canvas)
 
+def gameMode_askToUseJailCard(app, canvas):
+    text = '''\
+One of your Jail Cards is automatically used. You're exempt from the accusation'''
+    font = 'Baloo 15'
+    canvas.create_text(app.width/2, app.height/3, text=text, font=font)
 
 def gameMode_drawWinnerMsg(app, canvas):
     text = f'Congrats! {app.curPlayer} is the last player.'
@@ -719,9 +401,14 @@ def gameMode_drawMoneyAndPropertyCoin(app, canvas):
             canvas.create_text(cx, cy, text=player, font=font, fill='#fa0217')
         else:
             canvas.create_text(cx, cy, text=player, font=font,  
-                               fill='black')
+                            fill='black')
         canvas.create_oval(cx-rCoin, cy*1.6-rCoin, cx+rCoin, cy*1.6+rCoin, 
                            fill=player.color, outline=player.color)
+        if not player.activated:
+            canvas.create_text(cx, cy*1.6, text='bankrupt', fill='black')
+        
+
+      
 
 
 def gameMode_drawDice(app, canvas):
@@ -790,26 +477,25 @@ def gameMode_mousePressed(app, event):
         (not app.askUpgrade) and 
         (not app.instructionButton.enabled) and
         (not app.cardsButton.enabled) and 
-        (not app.propertiesButton.enabled)):
+        (not app.propertiesButton.enabled) and
+        (not app.askToUseJailCard)):
         if app.displayChanceCards or app.askToPayToll:
             app.displayChanceCards = False
             app.askToPayToll = False
-        
-        gameMode_bankrupcyChangeTurn(app)
+
+        while (app.curPlayerIndex in app.bannedPlayerIndex):
+            gameMode_changeTurn(app)
 
         if (((app.curPlayer in app.criminals) and 
             (app.criminals[app.curPlayer] > 0))):
-            
-            app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-            app.curPlayer.myTurn = 'False'
-            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-            app.curPlayer = nextPlayer
-            app.curPlayer.myTurn = 'True'
-            app.whoseTurn = nextPlayer
-            gameMode_bankrupcyChangeTurn(app)
+            gameMode_changeTurn(app)
+            while (app.curPlayerIndex in app.bannedPlayerIndex):
+                gameMode_changeTurn(app)
+
         
         if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
             # after A rolled the dice, current turn changes
+            
             for criminal in app.criminals:
                 app.criminals[criminal] -= 1
             app.dice = app.curPlayer.playDice()
@@ -835,32 +521,45 @@ def gameMode_mousePressed(app, event):
                   app.displayCCtime = time.time()
                   app.displayChanceCards = True
                   app.playChanceCards = True
-                  
-                  
+            
+            # app.lastPlayer = findLastActivatedPlayer(app, app.curPlayerIndex)
+            # print(f'app.lastPlayer={app.lastPlayer}')
+            # print(f'app.curPlayer={app.curPlayer}')
             app.lastPlayer = app.curPlayer
             
-            if ((not app.askBuy) and 
-                (not app.askUpgrade)):
-                gameMode_bankrupcyChangeTurn(app)
-                app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-                app.curPlayer.myTurn = 'False'
-                nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-                app.curPlayer = nextPlayer
-                app.curPlayer.myTurn = 'True'
-                app.whoseTurn = nextPlayer
 
-def gameMode_bankrupcyChangeTurn(app):
-    while (app.curPlayerIndex in app.bannedPlayerIndex):
-            app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-            app.curPlayer.myTurn = 'False'
             
-            print(f'app.bannedPlayerIndex = {app.bannedPlayerIndex}')
-            
-            print(f'curPlayerIndex = {app.curPlayerIndex}')
-            nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-            app.curPlayer = nextPlayer
-            app.curPlayer.myTurn = 'True'
-            app.whoseTurn = nextPlayer
+            if ((not app.askBuy) and 
+                (not app.askUpgrade) and
+                (not app.askToUseJailCard)):
+                # while (app.curPlayerIndex in app.bannedPlayerIndex):
+                #     gameMode_bankrupcyChangeTurn(app)
+                gameMode_changeTurn(app)
+                while not app.curPlayer.activated:
+                    gameMode_changeTurn(app)
+
+                    
+
+            # app.lastPlayer = findLastActivatedPlayer(app, app.curPlayerIndex)
+
+def findLastActivatedPlayer(app, playerIndex):
+    if app.playerInfoKeysList[playerIndex].activated:
+        return app.playerInfoKeysList[playerIndex]
+    else:
+        if playerIndex == 1:
+            lastPlayerIndex = app.playerNum
+        else:
+            lastPlayerIndex = playerIndex - 1
+        return findLastActivatedPlayer(app, lastPlayerIndex)
+
+
+def gameMode_changeTurn(app):
+    app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
+    app.curPlayer.myTurn = 'False'
+    nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
+    app.curPlayer = nextPlayer
+    app.curPlayer.myTurn = 'True'
+    app.whoseTurn = nextPlayer
     
 
     
@@ -879,30 +578,60 @@ def gameMode_timerFired(app):
         app.dice = ''
     
     if app.playChanceCards:
+        print("playchancecards")
         gameMode_playChanceCards(app)
         app.playChanceCards = False
     if (app.displayChanceCards) and (time.time() - app.displayCCtime > 2.2):
         app.displayChanceCards = False
-    
-    if app.bankrupcy == True and (time.time() - app.showBankrupcyMsg > 2):
-        app.bankrupcy = False
-        
-    if len(app.bannedPlayerIndex) + 1 == app.playerNum:
-        app.winner = True
 
+    if app.bankrupcy and (time.time() - app.bankrupcyTime > 2):
+        app.bankrupcy = False
+    
     if app.lastPlayer.money <= 0:
         app.bankrupcy = True
-        app.showBankrupcyMsg = time.time()
+        app.bankrupcyTime = time.time()
         app.bankrupt = f'{app.lastPlayer.playerName}'
-        app.lastPlayer.banned = True
+        app.lastPlayer.activated = False
         app.bannedPlayerIndex.add((app.curPlayerIndex - 1 + app.playerNum) % 
                                   app.playerNum)
+        for eachProperty in app.lastPlayer.myProperties:
+            eachProperty.selling()
+
+
+       
+
+    if len(app.bannedPlayerIndex) + 1 == app.playerNum:
+        print('there is a winner')
+        app.winnerMsgTime = time.time()
+        app.winner = True
+        while (app.curPlayerIndex in app.bannedPlayerIndex):
+            gameMode_changeTurn(app)
+        app.askBuy = app.askUpgrade = app.askToUseJailCard = False
+
+    
+    # if app.winner and time.time() - app.winnerMsgTime > 3:
+    #     app.displayWinnerMsg = True
+    #     print('display winner msg')
+    #     app.bankrupcy = False
+    
     if app.winner:
-        gameMode_bankrupcyChangeTurn(app)
-        app.askBuy = app.askUpgrade = False
         app.displayWinnerMsg = True
-        app.askBuy = app.askUpgrade = False
         app.bankrupcy = False
+        # print(f'time difference = {time.time() - app.winnerMsgTime}')
+
+    # if app.winner:
+    #     gameMode_bankrupcyChangeTurn(app)
+    #     app.askBuy = app.askUpgrade = False
+        # app.displayWinnerMsg = True
+        # app.bankrupcy = False
+    
+
+
+    # if app.winner and (time.time() - app.winnerMsgTime) > 5e-06:
+    #     # gameMode_bankrupcyChangeTurn(app)
+    #     # app.askBuy = app.askUpgrade = False
+    #     app.displayWinnerMsg = True
+    #     app.bankrupcy = False
         
     
 
@@ -911,14 +640,31 @@ def gameMode_timerFired(app):
 def gameMode_playChanceCards(app): #need to improve
     row, col = app.row, app.col
     coord = row, col
+    print(f'You are at row, col = {row, col}')
+    print(f'info at this grid:{app.boardDetailedInfo[coord]}')
     event = app.boardDetailedInfo[coord]['event name']
     if event == 'Market Crash':
         for eachPlayer in app.playerInfo:
             eachPlayer.money -= 2000
     elif event == 'Go to Jail':
-        app.lastPlayer.loc = app.jailLoc
-        app.playerInfo[app.lastPlayer]['loc'] = app.jailLoc
-        app.criminals[app.lastPlayer] = 3 * (len(app.playerInfoKeysList)-1)
+        if 'Get out of Jail Free' in app.lastPlayer.cards:
+            app.askToUseJailCard = True
+            print(f'you used to have{app.lastPlayer.cards}')
+            app.lastPlayer.cards.remove('Get out of Jail Free')
+            print(f'now you left{app.lastPlayer.cards}')
+        else:
+            app.lastPlayer.loc = app.jailLoc
+            app.playerInfo[app.lastPlayer]['loc'] = app.jailLoc
+            app.criminals[app.lastPlayer] = 3 * (len(app.playerInfoKeysList)-1)
+        # if not app.askToUseJailCard:
+        #     if app.exemptFromJail:
+        #         print(f'you used to have{app.lastPlayer.cards}')
+        #         app.lastPlayer.cards.remove('Get out of Jail Free')
+        #         print(f'now you left{app.lastPlayer.cards}')
+        #     else:
+        #         app.lastPlayer.loc = app.jailLoc
+        #         app.playerInfo[app.lastPlayer]['loc'] = app.jailLoc
+        #         app.criminals[app.lastPlayer] = 3 * (len(app.playerInfoKeysList)-1)
     elif event == 'Get out of Jail Free':
         app.lastPlayer.cards += ['Get out of Jail Free']
     elif event == 'Chairman':
@@ -973,18 +719,19 @@ def gameMode_drawGridInfo(app, canvas):
 
 def gameMode_drawPlayer(app, canvas):
     
-    for eachPlayer in app.playerInfo:     
-        loc = app.playerInfo[eachPlayer]['loc'] #returns a tuple
-        twoDRow, twoDCol = loc[0], loc[1]
-        cx = app.gridWidth * twoDCol + app.width * 0.4
-        cy = app.gridHeight * twoDRow
-        isoX, isoY = twoDToIso(cx, cy)
-        playerRadius = 9
-        x0 = isoX - playerRadius
-        y0 = isoY - playerRadius
-        x1 = isoX + playerRadius
-        y1 = isoY + playerRadius
-        canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
+    for eachPlayer in app.playerInfo:  
+        if eachPlayer.activated:   
+            loc = app.playerInfo[eachPlayer]['loc'] #returns a tuple
+            twoDRow, twoDCol = loc[0], loc[1]
+            cx = app.gridWidth * twoDCol + app.width * 0.4
+            cy = app.gridHeight * twoDRow
+            isoX, isoY = twoDToIso(cx, cy)
+            playerRadius = 9
+            x0 = isoX - playerRadius
+            y0 = isoY - playerRadius
+            x1 = isoX + playerRadius
+            y1 = isoY + playerRadius
+            canvas.create_oval(x0, y0, x1, y1, fill=eachPlayer.color)
 
 def gameMode_keyPressed(app, event):
     if ((app.instructionButton.enabled or app.cardsButton.enabled or
@@ -993,11 +740,12 @@ def gameMode_keyPressed(app, event):
         app.cardsButton.enabled = False
         app.propertiesButton.enabled = False
 
-    if ((app.askBuy or app.askUpgrade or app.askToPayToll) and 
+    if ((app.askBuy or app.askUpgrade or app.askToPayToll 
+         or app.askToUseJailCard) and 
         (type(app.dice) != str)):
         app.dice = ''
         app.lastPlayer = app.curPlayer
-    if ((app.askBuy or app.askUpgrade) and 
+    if ((app.askBuy or app.askUpgrade or app.askToUseJailCard) and 
         (event.key == 'y' or event.key == 'n')):
         row, col = app.row, app.col
         # app.lastPlayer = app.curPlayer
@@ -1016,17 +764,15 @@ def gameMode_keyPressed(app, event):
                     app.curPlayer.upgradeProperty(app)
                     app.askUpgrade = False
                     app.myBoard.map[row][col].upgrading()
+                # elif app.askToUseJailCard:
+                #     app.exemptFromJail = True
+                #     app.askToUseJailCard = False
                     
         elif event.key == 'n':
             app.askBuy = False
             app.askUpgrade = False
 
-        app.curPlayerIndex = (app.curPlayerIndex + 1) % app.playerNum
-        app.curPlayer.myTurn = 'False'
-        nextPlayer = app.playerInfoKeysList[app.curPlayerIndex-1]
-        app.curPlayer = nextPlayer
-        app.curPlayer.myTurn = 'True'
-        app.whoseTurn = nextPlayer
+        gameMode_changeTurn(app)
   
 
 def updateDetailedInfoDict(app):
@@ -1311,6 +1057,8 @@ def appStarted(app):
 
     app.winner = False
     app.displayWinnerMsg = False
+
+    app.askToUseJailCard = False
 
 
 
