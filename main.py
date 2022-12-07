@@ -6,14 +6,54 @@ from helper import *
 
 from mode import *
 
-import random, tkinter, time, decimal
 
+def gameMode_keyPressed(app, event):
+    if app.askNewGame and event.key == 'y':
+        appStarted(app)
+    if event.key == 's':
+        variables = getStartedRecord(app)
+        with open('record.txt', 'w') as f:
+            f.writelines(variables)
 
+    if ((app.instructionButton.enabled or app.cardsButton.enabled or
+         app.propertiesButton.enabled) and event.key == 'Escape'):
+        app.instructionButton.enabled = False
+        app.cardsButton.enabled = False
+        app.propertiesButton.enabled = False
+
+    if ((app.askBuy or app.askUpgrade or app.askToPayToll 
+         or app.askToUseJailCard) and 
+        (type(app.dice) != str)):
+        app.dice = ''
+        app.lastPlayer = app.curPlayer
+    if ((app.askBuy or app.askUpgrade or app.askToUseJailCard) and 
+        (event.key == 'y' or event.key == 'n')):
+        row, col = app.row, app.col
+        if event.key == 'y':
+            if ((app.myBoard.map[row][col] != 0) and 
+                (app.myBoard.map[row][col] != 1) and
+                (app.myBoard.map[row][col].name != None) and
+                (app.myBoard.map[row][col].name != 'jail')): #eligible properties
+                # buy 
+                if app.askBuy:
+                    app.curPlayer.buyProperty(app)
+                    app.myBoard.map[row][col].buying(app.curPlayer)
+                    app.askBuy = False
+                elif app.askUpgrade:
+                    app.curPlayer.upgradeProperty(app)
+                    app.askUpgrade = False
+                    app.myBoard.map[row][col].upgrading()
+                    
+        elif event.key == 'n':
+            app.askBuy = False
+            app.askUpgrade = False
+
+        gameMode_changeTurn(app)
 
 ##########################################
 # Main App
 ##########################################
-
+        
 def appStarted(app):
     app.mode = 'splashScreenMode'
     app.gridHeight = app.height*0.038
@@ -31,8 +71,6 @@ def appStarted(app):
     app.gridInfo = None
     app.clickGrid = False # keep track of whether the player clicked grids
     app.wantToReturn = False
-    # app.openInstruction = False
-    
 
     app.askBuy = False
     app.askUpgrade = False
@@ -66,13 +104,16 @@ def appStarted(app):
     app.displayWinnerMsg = False
 
     app.askToUseJailCard = False
-
-
+    app.isGameOver = False
+    app.askNewGame = False
+    # set up for save game state function
+    app.boardDetailedInfo = dict()
+    app.row = 0
+    app.col = 0
 
 
 def timerFired(app):
     if app.mode == 'gameMode':
         gameMode_timerFired(app)
-
 
 runApp(width=900, height=600)

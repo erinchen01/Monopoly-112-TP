@@ -1,1 +1,27 @@
-This is where to keep the information of players.
+app.mode:gameMode
+app.myBoard:<classes.Board object at 0x10ebb1580>
+app.index:2
+app.playerNum:3
+app.message:Successfully add a player
+app.playerNameList:['a', 'bb', 'cc']
+app.playerInfo:{Player a: {'loc': (7, 0), 'myTurn': False, 'color': '#ffd900'}, Player bb: {'loc': (8, 14), 'myTurn': False, 'color': '#ff004c'}, Player cc: {'loc': (7, 5), 'myTurn': False, 'color': '#8f02fa'}}
+app.curPlayerIndex:2
+app.dice:
+app.gridInfo:None
+app.clickGrid:False
+app.wantToReturn:False
+app.askBuy:False
+app.askUpgrade:False
+app.askToPayToll:False
+app.payToll:False
+app.displayChanceCards :False
+app.playChanceCards:False
+app.criminals:{}
+app.bankrupcy:False
+app.bannedPlayerIndex:set()
+app.winner:False
+app.displayWinnerMsg:False
+app.askToUseJailCard:False
+app.boardDetailedInfo:{(0, 2): {'property name': 'North York Moors', 'price to buy': 3352, 'owner': None, 'level': 0, 'cost to upgrade': 1340, 'toll': 0}, (0, 3): {'property name': 'chance', 'event name': 'parking fee', 'description': 'Pay parking fine of $500.'}, (0, 4): None, (0, 5): None, (0, 6): {'property name': 'Scioto Audubon', 'price to buy': 4894, 'owner': Player a, 'level': 1, 'cost to upgrade': 1957, 'toll': 1712}, (1, 2): {'property name': 'chance', 'event name': 'poor tax', 'description': 'Pay poor tax of $120.'}, (1, 6): None, (2, 2): 'jail', (2, 6): {'property name': 'Exmoor', 'price to buy': 3979, 'owner': None, 'level': 0, 'cost to upgrade': 1591, 'toll': 0}, (3, 2): {'property name': 'chance', 'event name': 'Get out of Jail Free', 'description': '\n\nYou accidentally picked up \na magic card.\nGet out of Jail Free. \nThis card may be kept until needed.'}, (3, 6): None, (4, 2): None, (4, 6): {'property name': 'Dartmoor', 'price to buy': 3852, 'owner': Player a, 'level': 1, 'cost to upgrade': 1540, 'toll': 1348}, (5, 2): {'property name': 'chance', 'event name': 'poor tax', 'description': 'Pay poor tax of $120.'}, (5, 6): None, (6, 2): None, (6, 6): {'property name': 'Snowdonia', 'price to buy': 4996, 'owner': Player a, 'level': 1, 'cost to upgrade': 1998, 'toll': 1748}, (7, 0): {'property name': 'chance', 'event name': 'parking fee', 'description': 'Pay parking fine of $500.'}, (7, 1): None, (7, 2): None, (7, 3): {'property name': 'Lake District', 'price to buy': 4676, 'owner': Player bb, 'level': 1, 'cost to upgrade': 1870, 'toll': 1636}, (7, 4): {'property name': 'chance', 'event name': 'Market Crash', 'description': '\n\nYou encountered a markect crash;\neveryone loses $2000.'}, (7, 5): None, (7, 6): None, (7, 7): {'property name': 'Cairngorms', 'price to buy': 3062, 'owner': None, 'level': 0, 'cost to upgrade': 1224, 'toll': 0}, (7, 8): {'property name': 'chance', 'event name': 'parking fee', 'description': 'Pay parking fine of $500.'}, (7, 9): None, (7, 10): None, (7, 11): {'property name': 'Royal Gorge Park', 'price to buy': 5261, 'owner': None, 'level': 0, 'cost to upgrade': 2104, 'toll': 0}, (7, 12): {'property name': 'chance', 'event name': 'competition', 'description': 'You have won a crossword competition.\nCollect $900.'}, (7, 13): None, (7, 14): None, (8, 0): {'property name': 'South Downs', 'price to buy': 5394, 'owner': None, 'level': 0, 'cost to upgrade': 2157, 'toll': 0}, (8, 8): {'property name': 'chance', 'event name': 'Market Crash', 'description': '\n\nYou encountered a markect crash;\neveryone loses $2000.'}, (8, 14): None, (9, 0): None, (9, 8): {'property name': 'Papago Park', 'price to buy': 5396, 'owner': None, 'level': 0, 'cost to upgrade': 2158, 'toll': 0}, (9, 14): {'property name': 'chance', 'event name': 'Go to Jail', 'description': '\n\nYou were arrested on \nsuspicion of drunk driving\nfor three rounds.'}, (10, 0): None, (10, 8): None, (10, 14): {'property name': 'The Broads', 'price to buy': 5513, 'owner': None, 'level': 0, 'cost to upgrade': 2205, 'toll': 0}, (11, 0): {'property name': 'chance', 'event name': 'Get out of Jail Free', 'description': '\n\nYou accidentally picked up \na magic card.\nGet out of Jail Free. \nThis card may be kept until needed.'}, (11, 8): None, (11, 14): None, (12, 0): {'property name': 'Falls Park', 'price to buy': 3464, 'owner': None, 'level': 0, 'cost to upgrade': 1385, 'toll': 0}, (12, 8): {'property name': 'chance', 'event name': 'Market Crash', 'description': '\n\nYou encountered a markect crash;\neveryone loses $2000.'}, (12, 14): None, (13, 0): None, (13, 1): {'property name': 'Brecon Beacons', 'price to buy': 3778, 'owner': None, 'level': 0, 'cost to upgrade': 1511, 'toll': 0}, (13, 2): {'property name': 'chance', 'event name': 'Go to Jail', 'description': '\n\nYou were arrested on \nsuspicion of drunk driving\nfor three rounds.'}, (13, 3): None, (13, 4): None, (13, 5): {'property name': 'New Forest', 'price to buy': 4164, 'owner': None, 'level': 0, 'cost to upgrade': 1665, 'toll': 0}, (13, 6): {'property name': 'chance', 'event name': 'Chairman', 'description': '\nYou have been elected\nChairman of the Board.\nPay each player $500. '}, (13, 7): None, (13, 8): None, (13, 14): {'property name': 'Rifle Mountain Park', 'price to buy': 3894, 'owner': None, 'level': 0, 'cost to upgrade': 1557, 'toll': 0}, (14, 8): {'property name': 'chance', 'event name': 'poor tax', 'description': 'Pay poor tax of $120.'}, (14, 9): None, (14, 10): None, (14, 11): {'property name': 'The Gathering Place', 'price to buy': 5033, 'owner': None, 'level': 0, 'cost to upgrade': 2013, 'toll': 0}, (14, 12): {'property name': 'chance', 'event name': 'parking fee', 'description': 'Pay parking fine of $500.'}, (14, 13): None, (14, 14): None}
+app.row:7
+app.col:0
