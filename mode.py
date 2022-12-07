@@ -4,6 +4,7 @@ from classes import *
 
 from helper import *
 
+import time
 ##########################################
 # Splash Screen Mode
 ##########################################
@@ -13,20 +14,12 @@ def splashScreenMode_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height/3, text='Monopoly!',
                        font='Baloo 60', fill='black')
     #start new game button
-    start = Button('start new game', (app.width/2.45, app.height/1.8))
+    start = Button('start new game', (app.width/2, app.height/1.8))
     coord = start.getCoords(app)
     canvas.create_oval(coord, fill='#FFC125', outline='#FFC125')
-    canvas.create_text(app.width/2.45, app.height/1.8, 
-                       text='     start\nnew game',
+    canvas.create_text(app.width/2, app.height/1.8, 
+                       text='      Start\nNew Game',
                        font=font, fill='black', anchor='center')
-    #continue last game button
-    resume = Button('resume', (app.width/1.73, app.height/1.8))
-    coord = resume.getCoords(app)
-    canvas.create_oval(coord, fill='#FFC125', outline='#FFC125')
-    canvas.create_text(app.width/1.73, app.height/1.8, 
-                       text='resume',
-                       font=font, fill='black', anchor='center')
-
     
     canvas.create_text(app.width*0.89, app.height*0.94, text='15-112 Term Project',
                        font='Times 20', fill='black')
@@ -34,58 +27,10 @@ def splashScreenMode_redrawAll(app, canvas):
 
 
 def splashScreenMode_mousePressed(app, event):
-    start = Button('start a new game', (app.width/2.45, app.height/1.8))
+    start = Button('start a new game', (app.width/2, app.height/1.8))
     x0S, y0S, x1S, y1S = start.getCoords(app)
-    resume = Button('resume', (app.width/1.73, app.height/1.8))
-    x0R, y0R, x1R, y1R = resume.getCoords(app)
     if x0S < event.x <= x1S and y0S < event.y <= y1S:
         app.mode = 'playerSettingMode'
-    elif x0R < event.x <= x1R and y0R < event.y <= y1R:
-        resumeRecord('record.txt', app)
-        app.mode = 'gameMode'
-
-def readFile(path):
-    # the next two lines of code are from 112 course website
-    with open(path, "rt") as f:
-        return f.read()
-
-def resumeRecord(path, app):
-    text = readFile(path)
-    variables = (app.mode, app.myBoard, app.index,
-                app.playerNum,
-                app.message,
-                app.playerNameList,
-                app.playerInfo,
-                app.curPlayerIndex,
-                app.dice,
-                app.gridInfo,
-                app.clickGrid,
-                app.wantToReturn,
-                app.askBuy,
-                app.askUpgrade,
-                app.askToPayToll,
-                app.payToll,
-                app.displayChanceCards,
-                app.playChanceCards,
-                app.criminals,
-                app.bankrupcy,
-                app.bannedPlayerIndex,
-                app.winner,
-                app.displayWinnerMsg,
-                app.askToUseJailCard,
-	            app.boardDetailedInfo,
-                app.row,
-                app.col)
-    index = 0
-    for eachLine in text.splitlines():
-        print(f'index = {index}')
-        print(f'eachLine={eachLine}')
-        variable = variables[index]
-        value = eachLine.split(':')[1]
-        variable = value
-        index += 1
-    
-    
 
 # ##########################################
 # # Player setting Mode
@@ -94,39 +39,40 @@ def resumeRecord(path, app):
 def playerSettingMode_redrawAll(app, canvas):
     font = 'Baloo 28'
     
-    canvas.create_text(app.width/2, app.height/8, 
+    canvas.create_text(app.width/2, app.height/2, 
                        text=app.message,
                        font=font, fill='black')
     canvas.create_text(app.width/7, app.height/8, 
                        text=f"Player number: {app.playerNum}",
                        font=font, fill='black')
-    canvas.create_text(app.width/2, app.height/2, 
-                       text=f"Press 'y' to start the game!",
-                       font=font, fill='black')
+    x0N, y0N, x1N, y1N = app.nextButton.getCoords(app)
+    canvas.create_oval(x0N, y0N, x1N, y1N, fill='#FFC125', outline='#FFC125')
+    canvas.create_text(app.width * 0.85, app.height * 0.8, text='next',
+                       font='Baloo 24', fill='#8B5742')
     
 
 def playerSettingMode_keyPressed(app, event):
-    if event.key == 'y':
+    name = app.getUserInput('Please enter your name:)')
+    if name == '':
+        app.message = 'Please type in a valid name.'
+    else:
+        if app.playerNum < 4:
+            if name != None:
+                app.playerNum += 1
+                app.message = 'Successfully add a player'
+                app.playerNameList.append(name)
+        if app.playerNum == 4:
+                app.message = '''
+                    Has reached the maximum of players. 
+                    Let's start the game!
+                '''
+def playerSettingMode_mousePressed(app, event):
+    x0N, y0N, x1N, y1N = app.nextButton.getCoords(app)
+    if (x0N < event.x < x1N) and (y0N < event.y < y1N):
         if app.playerNum < 2:
             app.message = "Please add at least\n      two players."
         else:
             app.mode = 'mapChooseMode'
-    else:
-        name = app.getUserInput('Please enter your name:)')
-        if name == '':
-            app.message = 'Please type in a valid name.'
-        else:
-            if app.playerNum < 4:
-                if name != None:
-                    app.playerNum += 1
-                    app.message = 'Successfully add a player'
-                    app.playerNameList.append(name)
-            if app.playerNum == 4:
-                    app.message = '''
-                        Has reached the maximum of players. 
-                        Let's start the game!
-                    '''
-
     
 
 # ##########################################
@@ -320,6 +266,15 @@ def gameMode_redrawAll(app, canvas):
     if app.displayWinnerMsg:
         gameMode_drawWinnerMsg(app, canvas)
 
+    if app.showSellButton:
+        gameMode_showSellButton(app, canvas)
+    if app.sellProperty:
+        coord = app.row, app.col
+        money = app.boardDetailedInfo[coord]['price to sell']
+        text = f'You sold the land and got ${money}'
+        font = 'Baloo 15'
+        canvas.create_text(app.width/2, app.height/3, text=text, font=font)
+
 def gameMode_askToUseJailCard(app, canvas):
     text = '''\
 One of your Jail Cards is automatically used. You're exempt from the accusation'''
@@ -506,6 +461,8 @@ def gameMode_mousePressed(app, event):
         x0Ins, y0Ins, x1Ins, y1Ins = app.instructionButton.getCoords(app)
         x0Cards, y0Cards, x1Cards, y1Cards = app.cardsButton.getCoords(app)
         x0P, y0P, x1P, y1P = app.propertiesButton.getCoords(app)
+        x0S, y0S, x1S, y1S = app.sellButton.getCoords(app)
+        # app.showSellButton = False
         if ((not app.instructionButton.enabled) and 
             (x0Ins < event.x < x1Ins) and 
             (y0Ins < event.y < y1Ins)):
@@ -518,6 +475,14 @@ def gameMode_mousePressed(app, event):
             (x0P < event.x < x1P) and
             (y0P < event.y < y1P)):
             app.propertiesButton.enabled = True
+        elif ((x0S < event.x < x1S) and
+              (y0S < event.y < y1S)):
+              app.sellProperty = True
+              app.displaySellPMsg = time.time()
+              app.curPlayer.sellProperty(app)
+              app.askUpgrade = False
+
+        
 
         # click grids
         Isox, Isoy = event.x, event.y
@@ -569,10 +534,12 @@ def gameMode_mousePressed(app, event):
                 if ((app.boardDetailedInfo[(row, col)] != None) and
                     (app.myBoard.map[row][col].name != 'jail') and 
                     (app.boardDetailedInfo[(row, col)]['property name'] != 'chance')):
+                    app.showSellButton = False
                     if app.boardDetailedInfo[(row, col)]['owner'] == None:
                         app.askBuy = True
                     elif app.boardDetailedInfo[(row, col)]['owner'] == app.curPlayer:
                         app.askUpgrade = True
+                        app.showSellButton = True
                     elif app.boardDetailedInfo[(row, col)]['owner'] != app.curPlayer:
                         app.startToAskForToll = time.time()
                         app.askToPayToll = True
@@ -616,7 +583,6 @@ def gameMode_timerFired(app):
         app.dice = ''
     
     if app.playChanceCards:
-        print("playchancecards")
         gameMode_playChanceCards(app)
         app.playChanceCards = False
     if (app.displayChanceCards) and (time.time() - app.displayCCtime > 2.2):
@@ -636,7 +602,6 @@ def gameMode_timerFired(app):
             eachProperty.selling()  
 
     if len(app.bannedPlayerIndex) + 1 == app.playerNum:
-        print('there is a winner')
         app.winnerMsgTime = time.time()
         app.winner = True
         while (app.curPlayerIndex in app.bannedPlayerIndex):
@@ -649,12 +614,14 @@ def gameMode_timerFired(app):
         app.bankrupcy = False
         app.isGameOver = True
 
-        
+    if app.askToUseJailCard and (time.time() - app.displayJailCardMsg > 1.7):
+        app.askToUseJailCard = False
+    if app.sellProperty and (time.time() - app.displaySellPMsg > 1.7):
+        app.sellProperty = False
+ 
 def gameMode_playChanceCards(app): #need to improve
     row, col = app.row, app.col
     coord = row, col
-    print(f'You are at row, col = {row, col}')
-    print(f'info at this grid:{app.boardDetailedInfo[coord]}')
     event = app.boardDetailedInfo[coord]['event name']
     if event == 'Market Crash':
         for eachPlayer in app.playerInfo:
@@ -662,9 +629,8 @@ def gameMode_playChanceCards(app): #need to improve
     elif event == 'Go to Jail':
         if 'Get out of Jail Free' in app.lastPlayer.cards:
             app.askToUseJailCard = True
-            print(f'you used to have{app.lastPlayer.cards}')
+            app.displayJailCardMsg = time.time()
             app.lastPlayer.cards.remove('Get out of Jail Free')
-            print(f'now you left{app.lastPlayer.cards}')
         else:
             app.lastPlayer.loc = app.jailLoc
             app.playerInfo[app.lastPlayer]['loc'] = app.jailLoc
@@ -754,6 +720,8 @@ def updateDetailedInfoDict(app):
                 grid.priceToUpgrade)
                 app.boardDetailedInfo[coord]['toll'] = grid.toll
                 app.boardDetailedInfo[coord]['level'] = grid.level
+                app.boardDetailedInfo[coord]['price to sell'] = grid.priceToSell
+
 
 
 ###########
@@ -773,14 +741,13 @@ def gameMode_drawBoard(app, canvas):
                 elif app.boardDetailedInfo[(row, col)] == None:
                     placeNoneGrid(app, canvas, cx, cy)
                 elif (app.boardDetailedInfo[(row, col)]['property name'] == 
-                                                              'chance'):
+                                                            'chance'):
                     placeChanceCards(app, canvas, cx, cy)
                 else:
                     if app.myBoard.map[row][col].owner != None:
                         placeOccupiedGrid(app, canvas, cx, cy, row, col)
                     else:
                         placeGrid(app, canvas, cx, cy)
-                    
 
 def placeGrid(app, canvas, cx, cy):
     coordCenterS = getGridCenterSquareCoord(app, cx, cy)
@@ -955,75 +922,14 @@ def gameMode_drawProperties(app, canvas):
                        fill=brown, font=font)
     canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
-
-
-##########
-
-variablesStr = '''\
-app.mode
-app.myBoard
-app.index
-app.playerNum
-app.message
-app.playerNameList
-app.playerInfo
-app.curPlayerIndex
-app.dice
-app.gridInfo
-app.clickGrid
-app.wantToReturn
-app.askBuy
-app.askUpgrade
-app.askToPayToll
-app.payToll
-app.displayChanceCards 
-app.playChanceCards
-app.criminals
-app.bankrupcy
-app.bannedPlayerIndex
-app.winner
-app.displayWinnerMsg
-app.askToUseJailCard
-app.boardDetailedInfo
-app.row
-app.col\
-'''
-def getStartedRecord(app):
-    variables = (app.mode, app.myBoard, app.index,
-                app.playerNum,
-                app.message,
-                app.playerNameList,
-                app.playerInfo,
-                app.curPlayerIndex,
-                app.dice,
-                app.gridInfo,
-                app.clickGrid,
-                app.wantToReturn,
-                app.askBuy,
-                app.askUpgrade,
-                app.askToPayToll,
-                app.payToll,
-                app.displayChanceCards,
-                app.playChanceCards,
-                app.criminals,
-                app.bankrupcy,
-                app.bannedPlayerIndex,
-                app.winner,
-                app.displayWinnerMsg,
-                app.askToUseJailCard,
-	            app.boardDetailedInfo,
-                app.row,
-                app.col)
-    texts = ''
-    index = 0
-    for eachLine in variablesStr.splitlines():
-        text = eachLine + ':' + str(variables[index])
-        print(f'text={text}')
-        print(f'eachLine={eachLine}')
-        index += 1
-        texts += text + '\n'
-    return texts
-
+def gameMode_showSellButton(app, canvas):
+    font = 'Baloo 24'
+    x0, x1 = app.width * 0.85, app.width * 0.95
+    y0, y1 = app.height * 0.65, app.height * 0.75
+    canvas.create_oval(x0, y0, x1, y1, 
+                       fill='#FFC125', outline='#FFC125') # Properties
+    canvas.create_text(app.width * 0.88, app.height * 0.73, text="Sell",
+                       anchor='sw', fill='#8B5742', font=font)
 
 
 

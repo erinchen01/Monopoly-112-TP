@@ -10,10 +10,6 @@ from mode import *
 def gameMode_keyPressed(app, event):
     if app.askNewGame and event.key == 'y':
         appStarted(app)
-    if event.key == 's':
-        variables = getStartedRecord(app)
-        with open('record.txt', 'w') as f:
-            f.writelines(variables)
 
     if ((app.instructionButton.enabled or app.cardsButton.enabled or
          app.propertiesButton.enabled) and event.key == 'Escape'):
@@ -88,10 +84,19 @@ def appStarted(app):
     cxPro = app.width * 0.9
     cyPro = app.height * 0.55
     app.propertiesButton = Button('Properties', (cxPro, cyPro))
+    
+    cxSellButton = app.width*0.9
+    cySellButton = app.height*0.7
+    app.sellButton = Button('Sell', (cxSellButton, cySellButton))
 
     cxDieButton = app.width*0.9
     cyDieButton = app.height*0.89
     app.dieButton = Button('Throw a die', (cxDieButton, cyDieButton))
+
+    cxNextButton = app.width*0.85
+    cyNextButton = app.height*0.8
+    app.nextButton = Button('Next', (cxNextButton, cyNextButton))
+
 
     app.displayChanceCards = False
     app.playChanceCards = False
@@ -110,6 +115,9 @@ def appStarted(app):
     app.boardDetailedInfo = dict()
     app.row = 0
     app.col = 0
+
+    app.showSellButton = False
+    app.sellProperty = False
 
 
 def timerFired(app):

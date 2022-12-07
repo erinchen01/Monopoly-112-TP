@@ -1,5 +1,5 @@
 
-import random, tkinter, time, decimal
+import random, decimal
 from boards import *
 
 ##########################################
@@ -233,7 +233,7 @@ class Player:
 
 
     def sellProperty(self, app):
-        curRow, curCol = self.loc
+        curRow, curCol = app.row, app.col
         grid = app.myBoard.map[curRow][curCol]
         # modify the params of players
         self.money += grid.priceToSell
@@ -241,9 +241,6 @@ class Player:
 
         # modify the params of the grid
         grid.selling()
-        return f'''Successfully sold {grid.name}.\
-Now you have {self.money} dollars left.\
-        '''
 
     def payToll(self, app):
         row, col = self.loc
