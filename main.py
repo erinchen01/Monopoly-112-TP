@@ -39,6 +39,7 @@ def gameMode_keyPressed(app, event):
                     app.curPlayer.upgradeProperty(app)
                     app.askUpgrade = False
                     app.myBoard.map[row][col].upgrading()
+                    app.showSellButton = False
                     
         elif event.key == 'n':
             app.askBuy = False

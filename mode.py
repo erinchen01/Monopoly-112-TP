@@ -245,7 +245,7 @@ def gameMode_redrawAll(app, canvas):
         gameMode_askToPayToll(app, canvas)
     elif app.displayChanceCards:
         gameMode_displayChanceCards(app, canvas)
-    elif app.askToUseJailCard:
+    if app.askToUseJailCard:
         gameMode_askToUseJailCard(app, canvas)
     if app.askNewGame:
         gameMode_askNewGame(app, canvas)
@@ -462,7 +462,6 @@ def gameMode_mousePressed(app, event):
         x0Cards, y0Cards, x1Cards, y1Cards = app.cardsButton.getCoords(app)
         x0P, y0P, x1P, y1P = app.propertiesButton.getCoords(app)
         x0S, y0S, x1S, y1S = app.sellButton.getCoords(app)
-        # app.showSellButton = False
         if ((not app.instructionButton.enabled) and 
             (x0Ins < event.x < x1Ins) and 
             (y0Ins < event.y < y1Ins)):
@@ -481,6 +480,7 @@ def gameMode_mousePressed(app, event):
               app.displaySellPMsg = time.time()
               app.curPlayer.sellProperty(app)
               app.askUpgrade = False
+              app.showSellButton = False
 
         
 
@@ -521,7 +521,6 @@ def gameMode_mousePressed(app, event):
 
             if (x0R < event.x <= x1R) and (y0R < event.y <= y1R): # A player rolled the dice
                 # after A rolled the dice, current turn changes
-                
                 for criminal in app.criminals:
                     app.criminals[criminal] -= 1
                 app.dice = app.curPlayer.playDice()
@@ -902,7 +901,7 @@ def gameMode_drawCards(app, canvas):
     command = "press 'esc' to return"
     canvas.create_rectangle(x0, y0, x1, y1, fill='#FFC125', outline='#FFC125')
     canvas.create_text((x0+x1)/2, (y0+y1)*0.3, text=title, fill=brown, font='Baloo 23')
-    canvas.create_text((x0+x1)/2, (y0+y1)*0.45, text=cards, font=font)
+    canvas.create_text((x0+x1)/2, (y0+y1)*0.55, text=cards, font=font)
     canvas.create_text((x0+x1)/2, (y0+y1)*0.75, text=command, font='Times 15')
 
 def gameMode_drawProperties(app, canvas):
