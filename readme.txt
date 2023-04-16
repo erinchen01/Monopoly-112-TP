@@ -17,3 +17,7 @@ decimal
 time
 
 Shortcut commands
+none
+
+Demo video
+https://youtu.be/_lB9efnO6lw
