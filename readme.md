@@ -22,7 +22,9 @@ none
 Demo video
 https://youtu.be/_lB9efnO6lw
 
+
 Program Interface Screenshot
+
 Users can navigate through the different maps in the interface using the left and right arrow keys on their keyboard.
 <img width="1012" alt="Screen Shot 2023-05-04 at 2 13 12 AM" src="https://user-images.githubusercontent.com/118121279/236124891-84fd9dc9-a25c-48bd-bc69-85c19f178997.png">
 
